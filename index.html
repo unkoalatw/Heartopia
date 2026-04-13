@@ -386,10 +386,10 @@
                 await autoFitPage();
                 renderPage(pageNum);
 
-                // 同步生成縮圖 (不使用 await 避免阻塞主頁面)
-                renderThumbnails();
-
-            } catch (err) {
+                // 同步生成縮圖 (等待全部完成才結束載入畫面)
+                await renderThumbnails();
+                
+                showLoading(false);
                 console.error("載入失敗:", err);
                 loadingStatus.innerText = "找不到書本 😭";
                 const errorBox = document.createElement('div');
@@ -448,7 +448,6 @@
             const total = pdfDoc.numPages;
             
             // 建立所有佔位符
-            const items = [];
             for (let i = 1; i <= total; i++) {
                 const thumbItem = document.createElement('div');
                 thumbItem.className = 'thumb-item' + (i === pageNum ? ' active' : '');
@@ -462,13 +461,12 @@
                     queueRenderPage(i);
                 };
                 thumbnailList.appendChild(thumbItem);
-                items.push(thumbItem);
             }
 
-            // 非同步渲染，每幀渲染一個，不阻塞 UI
+            // 同步渲染所有縮圖
             for (let i = 1; i <= total; i++) {
-                // 等待微小時間讓出主執行緒
-                await new Promise(r => requestAnimationFrame(r));
+                // 更新載入狀態文字讓使用者知道在畫圖
+                loadingStatus.innerText = `正在準備預覽圖 (${i} / ${total})...`;
                 
                 const page = await pdfDoc.getPage(i);
                 const viewport = page.getViewport({ scale: 0.25 });
