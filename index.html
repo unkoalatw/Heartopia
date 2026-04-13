@@ -61,6 +61,35 @@
             border: 2px solid #8C6A5D;
         }
 
+        /* 縮圖選單樣式 */
+        .thumb-item {
+            cursor: pointer;
+            border: 3px solid transparent;
+            border-radius: 10px;
+            transition: all 0.2s;
+            background-color: white;
+            padding: 5px;
+            text-align: center;
+        }
+
+        .thumb-item:hover {
+            border-color: #DAC0A3;
+            transform: scale(1.05);
+        }
+
+        .thumb-item.active {
+            border-color: #8C6A5D;
+            background-color: #F8F0E5;
+            box-shadow: 0 5px 15px rgba(140, 106, 93, 0.2);
+        }
+
+        .thumb-canvas {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+            display: block;
+        }
+
         /* 隱藏捲軸並美化 (Scrollbar) */
         ::-webkit-scrollbar {
             width: 8px;
@@ -133,20 +162,30 @@
 
     <div class="cute-card w-full max-w-6xl h-[85vh] flex flex-col md:flex-row overflow-hidden">
 
-        <!-- 左側：書櫃區 -->
-        <div
-            class="w-full md:w-1/4 bg-[#FAF6F0] p-6 border-b md:border-b-0 md:border-r-4 border-[#DAC0A3] flex flex-col">
-            <h1 class="text-2xl font-black text-[#8C6A5D] mb-6 flex items-center gap-2">
-                <span>🧸</span> 我的小書櫃
-            </h1>
+        <!-- 左側：多功能側欄 -->
+        <div id="sidebar"
+            class="w-full md:w-1/4 bg-[#FAF6F0] p-4 border-b md:border-b-0 md:border-r-4 border-[#DAC0A3] flex flex-col transition-all duration-300">
+            
+            <div class="flex items-center justify-between mb-4">
+                <h1 class="text-xl font-black text-[#8C6A5D] flex items-center gap-2">
+                    <span id="sidebar-icon">📚</span> <span id="sidebar-title">我的書櫃</span>
+                </h1>
+                <button id="view-mode-toggle" class="text-xs bg-[#DAC0A3] text-white px-2 py-1 rounded-full font-bold hover:bg-[#8C6A5D]">切換模式</button>
+            </div>
 
+            <!-- 書櫃模式 -->
             <div id="book-list" class="flex-1 overflow-y-auto space-y-2">
                 <!-- 由 JavaScript 動態產生 -->
             </div>
 
+            <!-- 縮圖模式 (預設隱藏) -->
+            <div id="thumbnail-list" class="hidden flex-1 overflow-y-auto grid grid-cols-2 gap-3 p-2">
+                <!-- 由 JavaScript 動態產生 -->
+            </div>
+
             <div
-                class="mt-4 text-xs text-[#8C6A5D] font-bold text-center bg-[#EADBC8] p-3 rounded-2xl border-2 border-[#DAC0A3]">
-                提示：點擊書本即可開始閱讀！✨
+                class="mt-4 text-[10px] text-[#8C6A5D] font-bold text-center bg-[#EADBC8] p-2 rounded-xl border-2 border-[#DAC0A3]">
+                提示：縮圖模式可快速跳頁！✨
             </div>
         </div>
 
@@ -180,7 +219,7 @@
                 
                 <!-- 標題與側欄開關 -->
                 <div class="flex items-center gap-2 flex-1">
-                    <button id="toggle-sidebar" class="cute-btn px-2 h-8 text-xs md:hidden" title="切換書櫃">📚</button>
+                    <button id="toggle-sidebar" class="cute-btn px-2 h-8 text-xs" title="切換書櫃/縮圖">📑</button>
                     <h2 id="current-title" class="text-md font-bold text-[#8C6A5D] truncate hidden md:block">歡迎光臨！</h2>
                 </div>
                 
@@ -242,7 +281,11 @@
         const canvas = document.getElementById('pdf-canvas');
         const ctx = canvas.getContext('2d');
         const viewerContainer = document.getElementById('pdf-viewer-container');
-        const sidebar = document.querySelector('.md\\:w-1\\/4'); // 抓取書櫃區
+        const sidebar = document.getElementById('sidebar');
+        const bookList = document.getElementById('book-list');
+        const thumbnailList = document.getElementById('thumbnail-list');
+        const sidebarTitle = document.getElementById('sidebar-title');
+        const sidebarIcon = document.getElementById('sidebar-icon');
         const loadingScreen = document.getElementById('loading');
         const loadingStatus = document.getElementById('loading-status');
         const progressBar = document.getElementById('progress-bar');
@@ -310,6 +353,9 @@
                 await autoFitWidth();
                 renderPage(pageNum);
 
+                // 同步生成縮圖
+                renderThumbnails();
+
             } catch (err) {
                 console.error("載入失敗:", err);
                 loadingStatus.innerText = "找不到書本 😭";
@@ -356,7 +402,45 @@
                 // 更新 UI
                 pageInput.value = num;
                 zoomPercent.innerText = Math.round(scale * 100) + '%';
+
+                // 更新縮圖選中狀態
+                document.querySelectorAll('.thumb-item').forEach(el => el.classList.remove('active'));
+                const activeThumb = document.querySelector(`.thumb-item[data-page="${num}"]`);
+                if (activeThumb) activeThumb.classList.add('active');
             });
+        }
+
+        async function renderThumbnails() {
+            thumbnailList.innerHTML = '';
+            for (let i = 1; i <= pdfDoc.numPages; i++) {
+                const page = await pdfDoc.getPage(i);
+                const viewport = page.getViewport({ scale: 0.2 });
+                
+                const thumbItem = document.createElement('div');
+                thumbItem.className = 'thumb-item';
+                thumbItem.setAttribute('data-page', i);
+                thumbItem.onclick = () => {
+                    pageNum = i;
+                    queueRenderPage(i);
+                };
+
+                const thumbCanvas = document.createElement('canvas');
+                thumbCanvas.className = 'thumb-canvas';
+                const tCtx = thumbCanvas.getContext('2d');
+                thumbCanvas.height = viewport.height;
+                thumbCanvas.width = viewport.width;
+
+                const renderCtx = { canvasContext: tCtx, viewport: viewport };
+                await page.render(renderCtx).promise;
+
+                const pageLabel = document.createElement('div');
+                pageLabel.className = 'text-[10px] font-bold text-[#8C6A5D] mt-1';
+                pageLabel.innerText = i;
+
+                thumbItem.appendChild(thumbCanvas);
+                thumbItem.appendChild(pageLabel);
+                thumbnailList.appendChild(thumbItem);
+            }
         }
 
         async function autoFitWidth() {
@@ -415,7 +499,28 @@
         };
 
         document.getElementById('toggle-sidebar').onclick = () => {
-            sidebar.classList.toggle('hidden');
+            if (window.innerWidth < 768) {
+                sidebar.classList.toggle('hidden');
+            } else {
+                sidebar.style.width = sidebar.style.width === '0px' ? '25%' : '0px';
+                sidebar.style.padding = sidebar.style.padding === '0px' ? '1rem' : '0px';
+                sidebar.style.opacity = sidebar.style.opacity === '0' ? '1' : '0';
+            }
+        };
+
+        document.getElementById('view-mode-toggle').onclick = () => {
+            const isBookMode = !bookList.classList.contains('hidden');
+            if (isBookMode) {
+                bookList.classList.add('hidden');
+                thumbnailList.classList.remove('hidden');
+                sidebarTitle.innerText = "頁面預覽";
+                sidebarIcon.innerText = "🖼️";
+            } else {
+                bookList.classList.remove('hidden');
+                thumbnailList.classList.add('hidden');
+                sidebarTitle.innerText = "我的書櫃";
+                sidebarIcon.innerText = "📚";
+            }
         };
 
         // 跳頁邏輯
