@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>心動小鎮書房</title>
+    <!-- 引入 Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入 PDF.js -->
+    <!-- 🌟 關鍵修復：必須在自訂腳本之前，先引入 PDF.js 核心函式庫 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
         
@@ -122,7 +124,12 @@
     </div>
 
     <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        // 確保 pdfjsLib 有被載入
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        } else {
+            console.error("PDF.js 函式庫未成功載入！");
+        }
 
         const GITHUB_CONFIG = {
             owner: 'unkoalatw', 
@@ -146,8 +153,8 @@
 
         function renderBookList() {
             const listContainer = document.getElementById('book-list');
-            listContainer.innerHTML = ''; // 確保清空
-
+            listContainer.innerHTML = '';
+            
             PDF_FILES.forEach(file => {
                 const btn = document.createElement('div');
                 btn.className = 'book-item p-4 text-[#8C6A5D] font-bold text-lg';
@@ -162,48 +169,40 @@
             });
         }
 
-        // 🌟 終極解法：使用 GitHub 官方 API 直連，徹底拋棄不穩定的第三方代理！
+        // 🌟 採用 ToolBoxApp 的 API 邏輯！
         async function loadPDF(filename) {
             showLoading(true);
-            loadingStatus.innerText = "正在向 GitHub 總部查詢檔案位置...";
+            loadingStatus.innerText = "正在使用 ToolBoxApp 的方式尋找檔案...";
 
             try {
-                // 第一步：透過 API 取得 Release 資訊
-                const releaseUrl = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/releases/tags/${GITHUB_CONFIG.tag}`;
-                const releaseRes = await fetch(releaseUrl);
+                // 1. 呼叫 GitHub API (取得指定 Tag 的版本資訊)
+                const apiUrl = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/releases/tags/${GITHUB_CONFIG.tag}`;
+                const res = await fetch(apiUrl);
                 
-                if (!releaseRes.ok) {
-                    throw new Error("找不到 Release 標籤，請確認 Tag 名稱是否正確。");
-                }
+                if (!res.ok) throw new Error("找不到 Release 資訊，請確認 GitHub 設定。");
                 
-                const releaseData = await releaseRes.json();
+                const releaseData = await res.json();
 
-                // 第二步：在 Release 裡找到我們要的檔案 (Heartopia.pdf)
+                // 2. 在 assets 陣列中尋找我們要的 PDF 檔案
                 const asset = releaseData.assets.find(a => a.name === filename);
-                if (!asset) {
-                    throw new Error(`在 Release 中找不到名為 ${filename} 的檔案！`);
-                }
+                if (!asset) throw new Error(`在 Release 中找不到檔案：${filename}`);
 
-                // 第三步：利用 API 給的真實網址直接下載
-                // 加上 Accept: application/octet-stream 標頭，GitHub 就會直接把檔案本體傳給我們
-                loadingStatus.innerText = "取得直達門票！正在努力下載 78MB 的書本中...";
-                const assetUrl = asset.url; 
+                // 3. 🎯 關鍵：直接提取你 ToolBoxApp 用過的 browser_download_url
+                const downloadUrl = asset.browser_download_url;
                 
-                const assetRes = await fetch(assetUrl, {
-                    headers: {
-                        'Accept': 'application/octet-stream'
+                loadingStatus.innerText = "取得官方直連網址！正在下載 78MB 的書本...";
+
+                // 4. 將這個絕對合法的官方下載網址，直接餵給 PDF.js
+                const loadingTask = pdfjsLib.getDocument(downloadUrl);
+
+                // 顯示精準的下載進度
+                loadingTask.onProgress = function (progress) {
+                    if (progress.total > 0) {
+                        const percent = Math.round((progress.loaded / progress.total) * 100);
+                        loadingStatus.innerText = `已搬運：${percent}% (共 ${(progress.total / 1024 / 1024).toFixed(1)} MB)`;
                     }
-                });
+                };
 
-                if (!assetRes.ok) throw new Error(`下載失敗，狀態碼：${assetRes.status}`);
-
-                // 把下載回來的檔案轉成數據塊 (Blob)
-                const blob = await assetRes.blob();
-                const arrayBuffer = await blob.arrayBuffer();
-
-                // 第四步：交給 PDF.js 渲染
-                loadingStatus.innerText = "下載完成！正在為您整理畫面...";
-                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
                 pdfDoc = await loadingTask.promise;
                 
                 document.getElementById('page-count').textContent = pdfDoc.numPages;
@@ -213,7 +212,7 @@
             } catch (err) {
                 console.error("PDF 載入失敗:", err);
                 loadingStatus.innerText = "搬運失敗了 😭";
-                alert("糟糕！搬運過程出錯：\n" + err.message + "\n\n這次我們是直連 GitHub，如果還是失敗，請確認您的網路連線喔！");
+                alert("糟糕！搬運過程出錯：\n" + err.message + "\n\n請確認網路連線是否正常。");
                 showLoading(false);
             }
         }
