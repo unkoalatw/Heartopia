@@ -69,10 +69,12 @@
         #sidebar.collapsed {
             width: 0 !important;
             min-width: 0 !important;
+            max-width: 0 !important;
             padding: 0 !important;
-            overflow: hidden;
-            opacity: 0;
+            margin: 0 !important;
             border: none !important;
+            opacity: 0;
+            overflow: hidden;
         }
 
         /* 縮圖選單優化 */
@@ -221,7 +223,7 @@
         </div>
 
         <!-- 右側：閱讀區 -->
-        <div class="w-full md:w-3/4 p-4 md:p-6 flex flex-col bg-white relative">
+        <div class="flex-1 p-4 md:p-6 flex flex-col bg-white relative">
 
             <!-- 載入中動畫 (Loading Animation) -->
             <div id="loading"
