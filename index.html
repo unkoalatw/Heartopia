@@ -93,6 +93,39 @@
         .floating-bunny {
             animation: float 3s ease-in-out infinite;
         }
+
+        /* 進度條樣式 */
+        .progress-container {
+            width: 100%;
+            height: 12px;
+            background-color: #EADBC8;
+            border-radius: 10px;
+            border: 2px solid #DAC0A3;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #8C6A5D, #DAC0A3);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .fun-fact-box {
+            background-color: #F8F0E5;
+            border-left: 5px solid #DAC0A3;
+            padding: 10px 20px;
+            margin-top: 20px;
+            border-radius: 10px;
+            max-width: 300px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 
@@ -122,10 +155,23 @@
 
             <!-- 載入中動畫 (Loading Animation) -->
             <div id="loading"
-                class="hidden absolute inset-0 bg-white/90 z-20 flex flex-col items-center justify-center rounded-3xl">
-                <div class="text-6xl floating-bunny mb-4">🐰</div>
-                <div class="text-xl font-bold text-[#8C6A5D]">正在翻開厚厚的書本...</div>
-                <div id="loading-status" class="text-sm font-bold text-[#DAC0A3] mt-2">請稍候喔！</div>
+                class="hidden absolute inset-0 bg-white/90 z-20 flex flex-col items-center justify-center rounded-3xl p-8 text-center">
+                <div class="text-7xl floating-bunny mb-4">🐰</div>
+                <div class="text-2xl font-black text-[#8C6A5D]">書本正在搬運中...</div>
+                
+                <!-- 進度條 -->
+                <div class="w-64">
+                    <div class="progress-container">
+                        <div id="progress-bar" class="progress-bar"></div>
+                    </div>
+                    <div id="loading-status" class="text-sm font-bold text-[#8C6A5D] mt-2">準備出發！</div>
+                </div>
+
+                <!-- 趣味小語 -->
+                <div class="fun-fact-box">
+                    <div class="text-[10px] text-[#DAC0A3] font-bold uppercase tracking-wider mb-1">你知道嗎？</div>
+                    <div id="loading-tip" class="text-xs font-bold text-[#8C6A5D]">正在準備讀書會...</div>
+                </div>
             </div>
 
             <!-- 控制面板 (Chrome-style Toolbar) -->
@@ -199,8 +245,22 @@
         const sidebar = document.querySelector('.md\\:w-1\\/4'); // 抓取書櫃區
         const loadingScreen = document.getElementById('loading');
         const loadingStatus = document.getElementById('loading-status');
+        const progressBar = document.getElementById('progress-bar');
+        const loadingTip = document.getElementById('loading-tip');
         const pageInput = document.getElementById('page-input');
         const zoomPercent = document.getElementById('zoom-percent');
+
+        const LOADING_MESSAGES = [
+            "搬運工人小兔正在努力爬樓梯 (這本 82MB 真的好重！)",
+            "正在清掃書房裡的灰塵... 阿啾！🤧",
+            "正在幫這本書貼上漂亮的蕾絲標籤...",
+            "圖書管理員正在找這本書的鑰匙...",
+            "等等，我先喝一口胡蘿蔔汁再繼續搬... 🥕",
+            "這本書裡面好像有藏寶圖？(盯... 🧐)",
+            "正在調整最舒心的閱讀光線...",
+            "搬運進度很好，小兔體力還很充沛！💪"
+        ];
+        let messageInterval = null;
 
         function renderBookList() {
             const listContainer = document.getElementById('book-list');
@@ -223,7 +283,9 @@
         // 核心載入邏輯 (Load Logic)
         async function loadPDF(filename) {
             showLoading(true);
-            loadingStatus.innerText = "正在從書櫃拿取中...";
+            startMessageCycle();
+            progressBar.style.width = '0%';
+            loadingStatus.innerText = "正在聯絡搬運工人...";
 
             try {
                 // 直接讀取同資料夾檔案
@@ -233,7 +295,8 @@
                 loadingTask.onProgress = function (progress) {
                     if (progress.total > 0) {
                         const percent = Math.round((progress.loaded / progress.total) * 100);
-                        loadingStatus.innerText = `已搬運：${percent}% (共 ${(progress.total / 1024 / 1024).toFixed(1)} MB)`;
+                        progressBar.style.width = `${percent}%`;
+                        loadingStatus.innerText = `已搬運：${percent}% (${(progress.loaded / 1024 / 1024).toFixed(1)} / ${(progress.total / 1024 / 1024).toFixed(1)} MB)`;
                     }
                 };
 
@@ -397,6 +460,22 @@
 
         function showLoading(show) {
             loadingScreen.style.display = show ? 'flex' : 'none';
+            if (!show) stopMessageCycle();
+        }
+
+        function startMessageCycle() {
+            let i = 0;
+            loadingTip.innerText = LOADING_MESSAGES[0];
+            messageInterval = setInterval(() => {
+                i = (i + 1) % LOADING_MESSAGES.length;
+                loadingTip.classList.remove('fadeIn');
+                void loadingTip.offsetWidth; // 觸發重繪
+                loadingTip.innerText = LOADING_MESSAGES[i];
+            }, 3000);
+        }
+
+        function stopMessageCycle() {
+            if (messageInterval) clearInterval(messageInterval);
         }
 
         renderBookList();
