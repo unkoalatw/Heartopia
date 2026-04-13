@@ -259,7 +259,7 @@
                     <button id="zoom-out" class="cute-btn w-8 h-8 flex items-center justify-center" title="縮小">－</button>
                     <span id="zoom-percent" class="text-xs font-bold text-[#8C6A5D] w-12 text-center">100%</span>
                     <button id="zoom-in" class="cute-btn w-8 h-8 flex items-center justify-center" title="放大">＋</button>
-                    <button id="fit-width" class="cute-btn px-2 h-8 text-xs ml-1" title="符合寬度">↔</button>
+                    <button id="fit-page" class="cute-btn px-2 h-8 text-xs ml-1" title="符合分頁">📄</button>
                     <button id="rotate-pdf" class="cute-btn w-8 h-8 flex items-center justify-center text-xs ml-1" title="旋轉">🔄</button>
                 </div>
 
@@ -379,9 +379,9 @@
                 document.getElementById('page-count').textContent = pdfDoc.numPages;
                 pageInput.max = pdfDoc.numPages;
                 
-                // 首次載入自動適應寬度
+                // 首次載入自動適應頁面
                 pageNum = 1;
-                await autoFitWidth();
+                await autoFitPage();
                 renderPage(pageNum);
 
                 // 同步生成縮圖 (不使用 await 避免阻塞主頁面)
@@ -488,19 +488,21 @@
             }
         }
 
-        async function autoFitWidth() {
+        async function autoFitPage() {
             if (!pdfDoc) return;
             const page = await pdfDoc.getPage(pageNum);
             const containerWidth = viewerContainer.clientWidth - 40; 
-            const viewport = page.getViewport({ scale: 1.0 });
+            const containerHeight = viewerContainer.clientHeight - 40;
+            const viewport = page.getViewport({ scale: 1.0, rotation: rotation });
             
-            // 預設縮放：以「看清楚字」為優先，至少佔滿寬度或稍微放大
-            scale = containerWidth / viewport.width;
+            const widthScale = containerWidth / viewport.width;
+            const heightScale = containerHeight / viewport.height;
             
-            // 如果寬度適應後的比例太小，強制放大到 1.5 倍以上
-            if (scale < 1.5) scale = 1.5; 
+            // 同時符合寬度跟高度：取兩者中最小的比例
+            scale = Math.min(widthScale, heightScale);
             
-            if (scale > 3) scale = 3; 
+            if (scale > 3) scale = 3;
+            if (scale < 0.2) scale = 0.2;
         }
 
         // 換頁排隊機制 (Queue)
@@ -533,8 +535,8 @@
             queueRenderPage(pageNum);
         };
 
-        document.getElementById('fit-width').onclick = async () => {
-            await autoFitWidth();
+        document.getElementById('fit-page').onclick = async () => {
+            await autoFitPage();
             queueRenderPage(pageNum);
         };
 
