@@ -195,15 +195,18 @@
         <!-- 載入中動畫 (Loading Animation) - 現在覆蓋全屏 -->
         <div id="loading"
             class="absolute inset-0 bg-[#F8F0E5] z-[100] flex flex-col items-center justify-center p-8 text-center transition-opacity duration-500">
-            <div class="text-8xl floating-bunny mb-6">🐰</div>
-            <div class="text-3xl font-black text-[#8C6A5D] mb-4">書本正在搬運中...</div>
+            <!-- 替換為小車 SVG -->
+            <div class="mb-6 w-full max-w-sm px-4">
+                <img src="gemini-svg.svg" class="w-full h-auto drop-shadow-xl" alt="Loading Car">
+            </div>
+            <div class="text-3xl font-black text-[#8C6A5D] mb-4">專車正在趕路中...</div>
             
             <!-- 進度條 -->
             <div class="w-64">
                 <div class="progress-container">
                     <div id="progress-bar" class="progress-bar"></div>
                 </div>
-                <div id="loading-status" class="text-sm font-bold text-[#8C6A5D] mt-2">準備出發！</div>
+                <div id="loading-status" class="text-sm font-bold text-[#8C6A5D] mt-2">引擎發動中！</div>
             </div>
 
             <!-- 趣味小語 -->
@@ -327,14 +330,14 @@
         const zoomPercent = document.getElementById('zoom-percent');
 
         const LOADING_MESSAGES = [
-            "搬運工人小兔正在努力爬樓梯 (這本 82MB 真的好重！)",
-            "正在清掃書房裡的灰塵... 阿啾！🤧",
-            "正在幫這本書貼上漂亮的蕾絲標籤...",
-            "圖書管理員正在找這本書的鑰匙...",
-            "等等，我先喝一口胡蘿蔔汁再繼續搬... 🥕",
-            "這本書裡面好像有藏寶圖？(盯... 🧐)",
-            "正在調整最舒心的閱讀光線...",
-            "搬運進度很好，小兔體力還很充沛！💪"
+            "司機正在將這本 82MB 的厚書搬上車...",
+            "準備出發！油箱已加滿胡蘿蔔汁... 🥕",
+            "正在導航至心動小鎮書櫃...",
+            "遇到紅燈了，請小車稍微等一下...",
+            "小車正在爬坡，這本書真的很有份量！💪",
+            "正在幫您的專屬書籍找個好位置...",
+            "即將抵達目的地，正在停車中...",
+            "正在調整最舒適的閱讀後視鏡..."
         ];
         let messageInterval = null;
 
@@ -390,6 +393,8 @@
                 await renderThumbnails();
                 
                 showLoading(false);
+
+            } catch (err) {
                 console.error("載入失敗:", err);
                 loadingStatus.innerText = "找不到書本 😭";
                 const errorBox = document.createElement('div');
