@@ -362,11 +362,16 @@
         async function autoFitWidth() {
             if (!pdfDoc) return;
             const page = await pdfDoc.getPage(pageNum);
-            const containerWidth = viewerContainer.clientWidth - 40; // 減去 padding
+            const containerWidth = viewerContainer.clientWidth - 40; 
             const viewport = page.getViewport({ scale: 1.0 });
+            
+            // 預設縮放：以「看清楚字」為優先，至少佔滿寬度或稍微放大
             scale = containerWidth / viewport.width;
-            if (scale > 2) scale = 2; // 不要大得太誇張
-            if (scale < 0.5) scale = 0.5;
+            
+            // 如果寬度適應後的比例太小，強制放大到 1.5 倍以上
+            if (scale < 1.5) scale = 1.5; 
+            
+            if (scale > 3) scale = 3; 
         }
 
         // 換頁排隊機制 (Queue)
@@ -478,7 +483,20 @@
             if (messageInterval) clearInterval(messageInterval);
         }
 
+        // 初始化
         renderBookList();
+        
+        // 🚀 自動載入預設書籍
+        window.addEventListener('DOMContentLoaded', () => {
+            const defaultBook = PDF_FILES[0];
+            document.getElementById('current-title').innerText = defaultBook.title;
+            // 標註 active 狀態
+            setTimeout(() => {
+                const firstItem = document.querySelector('.book-item');
+                if (firstItem) firstItem.classList.add('active');
+            }, 100);
+            loadPDF(defaultBook.filename);
+        });
     </script>
 </body>
 
