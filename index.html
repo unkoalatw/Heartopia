@@ -356,17 +356,52 @@
             loadingStatus.innerText = "正在聯絡搬運工人...";
 
             try {
-                const loadingTask = pdfjsLib.getDocument(filename);
-                loadingTask.onProgress = function (progress) {
-                    if (progress.total > 0) {
-                        const percent = Math.round((progress.loaded / progress.total) * 40); // 40% reserved for download
-                        progressBar.style.width = `${percent}%`;
-                        loadingStatus.innerText = `下載中：${Math.round((progress.loaded / progress.total)*100)}%`;
+                let loadingTask;
+                let fromCache = false;
+
+                // 嘗試從本地快取讀取 (Cache API)
+                if ('caches' in window) {
+                    try {
+                        const cache = await caches.open('heartopia-pdf-cache-v1');
+                        const cachedResponse = await cache.match(filename);
+                        if (cachedResponse) {
+                            fromCache = true;
+                            loadingStatus.innerText = "🚀 從本地快取讀取中，光速載入！";
+                            progressBar.style.width = '40%';
+                            const buffer = await cachedResponse.arrayBuffer();
+                            loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(buffer) });
+                        }
+                    } catch (e) {
+                        console.warn("讀取快取失敗:", e);
                     }
-                };
+                }
+
+                // 如果沒有快取，則進行網路下載
+                if (!fromCache) {
+                    loadingTask = pdfjsLib.getDocument(filename);
+                    loadingTask.onProgress = function (progress) {
+                        if (progress.total > 0) {
+                            const percent = Math.round((progress.loaded / progress.total) * 40); // 40% reserved for download
+                            progressBar.style.width = `${percent}%`;
+                            loadingStatus.innerText = `初次下載中，自動存入快取：${Math.round((progress.loaded / progress.total)*100)}%`;
+                        }
+                    };
+                }
 
                 pdfDoc = await loadingTask.promise;
                 currentFilename = filename;
+
+                // 下載完畢後，背景執行儲存至快取
+                if (!fromCache && 'caches' in window) {
+                    pdfDoc.getData().then(data => {
+                        caches.open('heartopia-pdf-cache-v1').then(cache => {
+                            cache.put(filename, new Response(data, {
+                                headers: { 'Content-Type': 'application/pdf' }
+                            }));
+                        });
+                    }).catch(e => console.warn("儲存快取發生錯誤:", e));
+                }
+
                 const total = pdfDoc.numPages;
                 document.getElementById('page-count').textContent = total;
                 pageInput.max = total;
