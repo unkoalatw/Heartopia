@@ -146,6 +146,8 @@
 
         function renderBookList() {
             const listContainer = document.getElementById('book-list');
+            listContainer.innerHTML = ''; // 確保清空
+
             PDF_FILES.forEach(file => {
                 const btn = document.createElement('div');
                 btn.className = 'book-item p-4 text-[#8C6A5D] font-bold text-lg';
@@ -160,36 +162,58 @@
             });
         }
 
+        // 🌟 終極解法：使用 GitHub 官方 API 直連，徹底拋棄不穩定的第三方代理！
         async function loadPDF(filename) {
             showLoading(true);
-            loadingStatus.innerText = "正在向 GitHub 請求檔案...";
-
-            const rawUrl = `https://github.com/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/releases/download/${GITHUB_CONFIG.tag}/${filename}`;
-            
-            // 🌟 更換為更穩定的大檔案代理服務 gh-proxy.com
-            const proxyUrl = `https://gh-proxy.com/${rawUrl}`;
+            loadingStatus.innerText = "正在向 GitHub 總部查詢檔案位置...";
 
             try {
-                // 使用 fetch 先抓取 Blob，這樣可以掌握載入進度（如果需要）並避免一些 PDF.js 的直接跨域問題
-                const response = await fetch(proxyUrl);
+                // 第一步：透過 API 取得 Release 資訊
+                const releaseUrl = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/releases/tags/${GITHUB_CONFIG.tag}`;
+                const releaseRes = await fetch(releaseUrl);
                 
-                if (!response.ok) {
-                    if (response.status === 403) throw new Error("代理伺服器拒絕存取，可能流量過載，請稍後再試。");
-                    throw new Error(`伺服器回應錯誤 (${response.status})`);
+                if (!releaseRes.ok) {
+                    throw new Error("找不到 Release 標籤，請確認 Tag 名稱是否正確。");
+                }
+                
+                const releaseData = await releaseRes.json();
+
+                // 第二步：在 Release 裡找到我們要的檔案 (Heartopia.pdf)
+                const asset = releaseData.assets.find(a => a.name === filename);
+                if (!asset) {
+                    throw new Error(`在 Release 中找不到名為 ${filename} 的檔案！`);
                 }
 
-                const blob = await response.blob();
+                // 第三步：利用 API 給的真實網址直接下載
+                // 加上 Accept: application/octet-stream 標頭，GitHub 就會直接把檔案本體傳給我們
+                loadingStatus.innerText = "取得直達門票！正在努力下載 78MB 的書本中...";
+                const assetUrl = asset.url; 
+                
+                const assetRes = await fetch(assetUrl, {
+                    headers: {
+                        'Accept': 'application/octet-stream'
+                    }
+                });
+
+                if (!assetRes.ok) throw new Error(`下載失敗，狀態碼：${assetRes.status}`);
+
+                // 把下載回來的檔案轉成數據塊 (Blob)
+                const blob = await assetRes.blob();
                 const arrayBuffer = await blob.arrayBuffer();
 
+                // 第四步：交給 PDF.js 渲染
+                loadingStatus.innerText = "下載完成！正在為您整理畫面...";
                 const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
                 pdfDoc = await loadingTask.promise;
                 
                 document.getElementById('page-count').textContent = pdfDoc.numPages;
                 pageNum = 1;
                 renderPage(pageNum);
+
             } catch (err) {
-                console.error(err);
-                alert("抱歉！搬運過程出錯了：\n" + err.message);
+                console.error("PDF 載入失敗:", err);
+                loadingStatus.innerText = "搬運失敗了 😭";
+                alert("糟糕！搬運過程出錯：\n" + err.message + "\n\n這次我們是直連 GitHub，如果還是失敗，請確認您的網路連線喔！");
                 showLoading(false);
             }
         }
@@ -197,7 +221,6 @@
         function renderPage(num) {
             pageIsRendering = true;
             pdfDoc.getPage(num).then(page => {
-                // 為了手機顯示優化，根據容器寬度調整比例
                 const viewport = page.getViewport({ scale: 1.5 });
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
