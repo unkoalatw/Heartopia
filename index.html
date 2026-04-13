@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>心動小鎮書房</title>
-    <!-- 引入 Tailwind -->
+    <!-- 引入美化工具 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 🌟 關鍵修復：必須在自訂腳本之前，先引入 PDF.js 核心函式庫 -->
+    <!-- 引入閱讀 PDF 的核心工具 PDF.js (Library) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
-        
+
         body {
             font-family: 'Nunito', sans-serif;
-            background-color: #F8F0E5; 
+            background-color: #F8F0E5;
             background-image: radial-gradient(#EADBC8 2px, transparent 2px);
             background-size: 30px 30px;
         }
@@ -60,101 +61,151 @@
             border: 2px solid #8C6A5D;
         }
 
-        /* 自定義捲軸 */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #F8F0E5; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: #DAC0A3; border-radius: 10px; }
-
-        /* 動畫效果 */
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
+        /* 隱藏捲軸並美化 (Scrollbar) */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
-        .floating-bunny { animation: float 3s ease-in-out infinite; }
+
+        ::-webkit-scrollbar-track {
+            background: #F8F0E5;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #DAC0A3;
+            border-radius: 10px;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        .floating-bunny {
+            animation: float 3s ease-in-out infinite;
+        }
     </style>
 </head>
+
 <body class="min-h-screen flex items-center justify-center p-4 md:p-8">
 
     <div class="cute-card w-full max-w-6xl h-[85vh] flex flex-col md:flex-row overflow-hidden">
-        
-        <!-- 左側：書櫃 -->
-        <div class="w-full md:w-1/4 bg-[#FAF6F0] p-6 border-b md:border-b-0 md:border-r-4 border-[#DAC0A3] flex flex-col">
+
+        <!-- 左側：書櫃區 -->
+        <div
+            class="w-full md:w-1/4 bg-[#FAF6F0] p-6 border-b md:border-b-0 md:border-r-4 border-[#DAC0A3] flex flex-col">
             <h1 class="text-2xl font-black text-[#8C6A5D] mb-6 flex items-center gap-2">
                 <span>🧸</span> 我的小書櫃
             </h1>
-            
+
             <div id="book-list" class="flex-1 overflow-y-auto space-y-2">
-                <!-- 由 JavaScript 產生 -->
+                <!-- 由 JavaScript 動態產生 -->
             </div>
-            
-            <div class="mt-4 text-xs text-[#8C6A5D] font-bold text-center bg-[#EADBC8] p-3 rounded-2xl border-2 border-[#DAC0A3]">
-                提示：檔案較大時，請耐心等候搬運工人喔！✨
+
+            <div
+                class="mt-4 text-xs text-[#8C6A5D] font-bold text-center bg-[#EADBC8] p-3 rounded-2xl border-2 border-[#DAC0A3]">
+                提示：點擊書本即可開始閱讀！✨
             </div>
         </div>
 
         <!-- 右側：閱讀區 -->
         <div class="w-full md:w-3/4 p-4 md:p-6 flex flex-col bg-white relative">
-            
-            <!-- 載入中遮罩 -->
-            <div id="loading" class="hidden absolute inset-0 bg-white/90 z-20 flex flex-col items-center justify-center rounded-3xl">
+
+            <!-- 載入中動畫 (Loading Animation) -->
+            <div id="loading"
+                class="hidden absolute inset-0 bg-white/90 z-20 flex flex-col items-center justify-center rounded-3xl">
                 <div class="text-6xl floating-bunny mb-4">🐰</div>
-                <div class="text-xl font-bold text-[#8C6A5D]">正在努力搬運厚重的書本...</div>
-                <div id="loading-status" class="text-sm font-bold text-[#DAC0A3] mt-2">請稍候 (這本書有 78MB 喔！)</div>
+                <div class="text-xl font-bold text-[#8C6A5D]">正在翻開厚厚的書本...</div>
+                <div id="loading-status" class="text-sm font-bold text-[#DAC0A3] mt-2">請稍候喔！</div>
             </div>
 
-            <!-- 控制面板 -->
-            <div class="flex flex-wrap justify-between items-center gap-3 mb-4 bg-[#F8F0E5] p-3 rounded-2xl border-2 border-[#DAC0A3]">
-                <h2 id="current-title" class="text-lg font-bold text-[#8C6A5D] truncate flex-1">歡迎來到小鎮書房！</h2>
-                <div class="flex items-center gap-2">
-                    <button id="prev-page" class="cute-btn px-3 py-1 text-sm md:text-base">上頁</button>
-                    <span class="text-[#8C6A5D] font-bold text-sm">
-                        <span id="page-num">0</span> / <span id="page-count">0</span>
-                    </span>
-                    <button id="next-page" class="cute-btn px-3 py-1 text-sm md:text-base">下頁</button>
+            <!-- 控制面板 (Chrome-style Toolbar) -->
+            <div
+                class="flex flex-wrap items-center gap-2 mb-4 bg-[#F8F0E5] p-2 rounded-2xl border-2 border-[#DAC0A3] sticky top-0 z-10 shadow-sm">
+                
+                <!-- 標題與側欄開關 -->
+                <div class="flex items-center gap-2 flex-1">
+                    <button id="toggle-sidebar" class="cute-btn px-2 h-8 text-xs md:hidden" title="切換書櫃">📚</button>
+                    <h2 id="current-title" class="text-md font-bold text-[#8C6A5D] truncate hidden md:block">歡迎光臨！</h2>
+                </div>
+                
+                <!-- 縮放與旋轉控制 -->
+                <div class="flex items-center gap-1 border-r-2 border-[#DAC0A3]/30 pr-2">
+                    <button id="zoom-out" class="cute-btn w-8 h-8 flex items-center justify-center" title="縮小">－</button>
+                    <span id="zoom-percent" class="text-xs font-bold text-[#8C6A5D] w-12 text-center">100%</span>
+                    <button id="zoom-in" class="cute-btn w-8 h-8 flex items-center justify-center" title="放大">＋</button>
+                    <button id="fit-width" class="cute-btn px-2 h-8 text-xs ml-1" title="符合寬度">↔</button>
+                    <button id="rotate-pdf" class="cute-btn w-8 h-8 flex items-center justify-center text-xs ml-1" title="旋轉">🔄</button>
+                </div>
+
+                <!-- 頁碼切換 -->
+                <div class="flex items-center gap-1 pr-2">
+                    <button id="prev-page" class="cute-btn w-8 h-8 flex items-center justify-center">＜</button>
+                    <div class="flex items-center bg-white rounded-lg px-2 border border-[#DAC0A3]">
+                        <input type="number" id="page-input" value="0" class="w-10 text-center text-sm font-bold text-[#8C6A5D] outline-none" min="1">
+                        <span class="text-[#8C6A5D] font-bold text-xs mx-1">/</span>
+                        <span id="page-count" class="text-[#8C6A5D] font-bold text-xs">0</span>
+                    </div>
+                    <button id="next-page" class="cute-btn w-8 h-8 flex items-center justify-center">＞</button>
+                </div>
+
+                <!-- 其他功能 -->
+                <div class="flex items-center gap-1">
+                    <button id="download-pdf" class="cute-btn w-8 h-8 flex items-center justify-center text-sm" title="下載">⬇</button>
+                    <button id="print-pdf" class="cute-btn w-8 h-8 flex items-center justify-center text-sm" title="列印">🖨️</button>
                 </div>
             </div>
 
-            <!-- PDF 內容區 -->
-            <div class="flex-1 overflow-auto bg-[#FAF6F0] rounded-2xl border-4 border-[#DAC0A3] flex items-start justify-center p-2 md:p-4">
-                <canvas id="pdf-canvas" class="max-w-full shadow-md rounded-lg"></canvas>
+            <!-- 顯示 PDF 的掛載點 (Containment) -->
+            <div id="pdf-viewer-container"
+                class="flex-1 overflow-auto bg-[#FAF6F0] rounded-2xl border-4 border-[#DAC0A3] flex items-start justify-center p-2 md:p-4">
+                <canvas id="pdf-canvas" class="shadow-xl rounded-lg bg-white"></canvas>
             </div>
-            
+
         </div>
     </div>
 
     <script>
-        // 確保 pdfjsLib 有被載入
+        // 設定 PDF.js 的幫手 (Worker)
         if (typeof pdfjsLib !== 'undefined') {
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-        } else {
-            console.error("PDF.js 函式庫未成功載入！");
         }
 
-        const GITHUB_CONFIG = {
-            owner: 'unkoalatw', 
-            repo: 'Heartopia',  
-            tag: 'v.1'          
-        };
-
+        // 使用「相對路徑 (Relative Path)」，因為檔案和網頁在同一個倉庫
         const PDF_FILES = [
             { id: 1, title: '🏠 心動小鎮 (Heartopia)', filename: 'Heartopia.pdf' }
         ];
 
         let pdfDoc = null,
             pageNum = 1,
+            scale = 1.0,
+            rotation = 0,
             pageIsRendering = false,
-            pageNumIsPending = null;
+            pageNumIsPending = null,
+            currentFilename = '';
 
         const canvas = document.getElementById('pdf-canvas');
         const ctx = canvas.getContext('2d');
+        const viewerContainer = document.getElementById('pdf-viewer-container');
+        const sidebar = document.querySelector('.md\\:w-1\\/4'); // 抓取書櫃區
         const loadingScreen = document.getElementById('loading');
         const loadingStatus = document.getElementById('loading-status');
+        const pageInput = document.getElementById('page-input');
+        const zoomPercent = document.getElementById('zoom-percent');
 
         function renderBookList() {
             const listContainer = document.getElementById('book-list');
             listContainer.innerHTML = '';
-            
+
             PDF_FILES.forEach(file => {
                 const btn = document.createElement('div');
                 btn.className = 'book-item p-4 text-[#8C6A5D] font-bold text-lg';
@@ -169,33 +220,16 @@
             });
         }
 
-        // 🌟 採用 ToolBoxApp 的 API 邏輯！
+        // 核心載入邏輯 (Load Logic)
         async function loadPDF(filename) {
             showLoading(true);
-            loadingStatus.innerText = "正在使用 ToolBoxApp 的方式尋找檔案...";
+            loadingStatus.innerText = "正在從書櫃拿取中...";
 
             try {
-                // 1. 呼叫 GitHub API (取得指定 Tag 的版本資訊)
-                const apiUrl = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/releases/tags/${GITHUB_CONFIG.tag}`;
-                const res = await fetch(apiUrl);
-                
-                if (!res.ok) throw new Error("找不到 Release 資訊，請確認 GitHub 設定。");
-                
-                const releaseData = await res.json();
+                // 直接讀取同資料夾檔案
+                const loadingTask = pdfjsLib.getDocument(filename);
 
-                // 2. 在 assets 陣列中尋找我們要的 PDF 檔案
-                const asset = releaseData.assets.find(a => a.name === filename);
-                if (!asset) throw new Error(`在 Release 中找不到檔案：${filename}`);
-
-                // 3. 🎯 關鍵：直接提取你 ToolBoxApp 用過的 browser_download_url
-                const downloadUrl = asset.browser_download_url;
-                
-                loadingStatus.innerText = "取得官方直連網址！正在下載 78MB 的書本...";
-
-                // 4. 將這個絕對合法的官方下載網址，直接餵給 PDF.js
-                const loadingTask = pdfjsLib.getDocument(downloadUrl);
-
-                // 顯示精準的下載進度
+                // 更新搬運百分比
                 loadingTask.onProgress = function (progress) {
                     if (progress.total > 0) {
                         const percent = Math.round((progress.loaded / progress.total) * 100);
@@ -204,27 +238,49 @@
                 };
 
                 pdfDoc = await loadingTask.promise;
-                
+                currentFilename = filename;
                 document.getElementById('page-count').textContent = pdfDoc.numPages;
+                pageInput.max = pdfDoc.numPages;
+                
+                // 首次載入自動適應寬度
                 pageNum = 1;
+                await autoFitWidth();
                 renderPage(pageNum);
 
             } catch (err) {
-                console.error("PDF 載入失敗:", err);
-                loadingStatus.innerText = "搬運失敗了 😭";
-                alert("糟糕！搬運過程出錯：\n" + err.message + "\n\n請確認網路連線是否正常。");
+                console.error("載入失敗:", err);
+                loadingStatus.innerText = "找不到書本 😭";
+                const errorBox = document.createElement('div');
+                errorBox.className = "bg-red-50 p-4 text-red-600 rounded-xl text-center font-bold";
+                errorBox.innerText = "錯誤：檔案庫中似乎找不到 Heartopia.pdf！";
+                canvas.parentElement.appendChild(errorBox);
                 showLoading(false);
             }
         }
 
+        // 畫出 PDF 頁面
         function renderPage(num) {
+            if (!pdfDoc) return;
             pageIsRendering = true;
+            
             pdfDoc.getPage(num).then(page => {
-                const viewport = page.getViewport({ scale: 1.5 });
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
+                const viewport = page.getViewport({ scale: scale, rotation: rotation });
+                
+                // 為了高畫質渲染 (Retina 支援)
+                const outputScale = window.devicePixelRatio || 1;
+                canvas.width = Math.floor(viewport.width * outputScale);
+                canvas.height = Math.floor(viewport.height * outputScale);
+                canvas.style.width = Math.floor(viewport.width) + "px";
+                canvas.style.height = Math.floor(viewport.height) + "px";
 
-                const renderCtx = { canvasContext: ctx, viewport: viewport };
+                const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
+
+                const renderCtx = { 
+                    canvasContext: ctx, 
+                    viewport: viewport,
+                    transform: transform
+                };
+                
                 page.render(renderCtx).promise.then(() => {
                     pageIsRendering = false;
                     showLoading(false);
@@ -233,25 +289,110 @@
                         pageNumIsPending = null;
                     }
                 });
-                document.getElementById('page-num').textContent = num;
+
+                // 更新 UI
+                pageInput.value = num;
+                zoomPercent.innerText = Math.round(scale * 100) + '%';
             });
         }
 
+        async function autoFitWidth() {
+            if (!pdfDoc) return;
+            const page = await pdfDoc.getPage(pageNum);
+            const containerWidth = viewerContainer.clientWidth - 40; // 減去 padding
+            const viewport = page.getViewport({ scale: 1.0 });
+            scale = containerWidth / viewport.width;
+            if (scale > 2) scale = 2; // 不要大得太誇張
+            if (scale < 0.5) scale = 0.5;
+        }
+
+        // 換頁排隊機制 (Queue)
         function queueRenderPage(num) {
-            if (pageIsRendering) { pageNumIsPending = num; } 
+            if (pageIsRendering) { pageNumIsPending = num; }
             else { renderPage(num); }
         }
 
-        document.getElementById('prev-page').addEventListener('click', () => {
+        document.getElementById('prev-page').onclick = () => {
             if (pageNum <= 1 || !pdfDoc) return;
             pageNum--;
             queueRenderPage(pageNum);
-        });
+        };
 
-        document.getElementById('next-page').addEventListener('click', () => {
+        document.getElementById('next-page').onclick = () => {
             if (!pdfDoc || pageNum >= pdfDoc.numPages) return;
             pageNum++;
             queueRenderPage(pageNum);
+        };
+
+        // 縮放按鈕邏輯
+        document.getElementById('zoom-in').onclick = () => {
+            scale += 0.25;
+            queueRenderPage(pageNum);
+        };
+
+        document.getElementById('zoom-out').onclick = () => {
+            if (scale <= 0.25) return;
+            scale -= 0.25;
+            queueRenderPage(pageNum);
+        };
+
+        document.getElementById('fit-width').onclick = async () => {
+            await autoFitWidth();
+            queueRenderPage(pageNum);
+        };
+
+        document.getElementById('rotate-pdf').onclick = () => {
+            rotation = (rotation + 90) % 360;
+            queueRenderPage(pageNum);
+        };
+
+        document.getElementById('toggle-sidebar').onclick = () => {
+            sidebar.classList.toggle('hidden');
+        };
+
+        // 跳頁邏輯
+        pageInput.onchange = (e) => {
+            const newPage = parseInt(e.target.value);
+            if (newPage >= 1 && newPage <= pdfDoc.numPages) {
+                pageNum = newPage;
+                queueRenderPage(pageNum);
+            } else {
+                e.target.value = pageNum;
+            }
+        };
+
+        // 下載與列印
+        document.getElementById('download-pdf').onclick = () => {
+            if (!currentFilename) return;
+            const link = document.createElement('a');
+            link.href = currentFilename;
+            link.download = currentFilename;
+            link.click();
+        };
+
+        document.getElementById('print-pdf').onclick = () => {
+            if (!currentFilename) return;
+            const printWindow = window.open(currentFilename, '_blank');
+            printWindow.print();
+        };
+
+        // 監聽視窗大小改變，自動調整 (選用)
+        window.onresize = () => {
+            if (pdfDoc) {
+                // 不一定要自動調整，因為使用者可能手動縮放了
+                // 但可以提供一個更好的初始體驗
+            }
+        };
+
+        // 鍵盤快速鍵
+        window.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+            
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                document.getElementById('next-page').click();
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                document.getElementById('prev-page').click();
+            }
         });
 
         function showLoading(show) {
@@ -261,4 +402,5 @@
         renderBookList();
     </script>
 </body>
+
 </html>
