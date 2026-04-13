@@ -279,12 +279,16 @@
                     </button>
                 </div>
 
-                <div class="flex items-center gap-1 hidden md:flex">
-                    <button id="download-pdf" class="cute-btn w-8 h-8 flex items-center justify-center" title="下載">
+                <div class="flex items-center gap-1">
+                    <button id="download-pdf" class="cute-btn w-8 h-8 hidden md:flex items-center justify-center" title="下載">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
-                    <button id="print-pdf" class="cute-btn w-8 h-8 flex items-center justify-center" title="列印">
+                    <button id="print-pdf" class="cute-btn w-8 h-8 hidden md:flex items-center justify-center" title="列印">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    </button>
+                    <!-- 全螢幕按鈕 -->
+                    <button id="toggle-fullscreen" class="cute-btn w-8 h-8 flex items-center justify-center" title="全螢幕">
+                        <svg id="fs-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
                     </button>
                 </div>
             </div>
@@ -657,6 +661,45 @@
         function stopMessageCycle() {
             if (messageInterval) clearInterval(messageInterval);
         }
+
+        // 全螢幕邏輯
+        const cuteCard = document.querySelector('.cute-card');
+        const fsIcon = document.getElementById('fs-icon');
+
+        document.getElementById('toggle-fullscreen').onclick = () => {
+            if (!document.fullscreenElement) {
+                // 進入全螢幕
+                cuteCard.requestFullscreen().catch(err => {
+                    console.log(`無法進入全螢幕模式: ${err.message}`);
+                });
+            } else {
+                // 離開全螢幕
+                document.exitFullscreen();
+            }
+        };
+
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                // 全螢幕時移除邊框與圓角，撐滿畫面
+                cuteCard.classList.remove('max-w-6xl', 'h-[90vh]', 'md:h-[85vh]');
+                cuteCard.classList.add('w-screen', 'h-screen');
+                cuteCard.style.borderRadius = '0px';
+                cuteCard.style.border = 'none';
+                fsIcon.setAttribute('d', 'M6 18L18 6M6 6l12 12'); // 換成 X 圖示
+            } else {
+                // 恢復原本卡片樣式
+                cuteCard.classList.add('max-w-6xl', 'h-[90vh]', 'md:h-[85vh]');
+                cuteCard.classList.remove('w-screen', 'h-screen');
+                cuteCard.style.borderRadius = '30px';
+                cuteCard.style.border = '4px solid #DAC0A3';
+                fsIcon.setAttribute('d', 'M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4');
+            }
+            
+            // 全螢幕切換後，自動重新計算寬高與比例
+            setTimeout(() => {
+                document.getElementById('fit-page').click();
+            }, 300);
+        });
 
         renderBookList();
         
