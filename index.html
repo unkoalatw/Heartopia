@@ -430,6 +430,9 @@
                 applyCSSZoom();
                 showLoading(false);
                 
+                // 初次載入自動觸發符合分頁
+                document.getElementById('fit-page').click();
+                
                 // Auto switch to preview mode to showcase everything is loaded
                 if(bookList.classList.contains('hidden') === false) {
                     document.getElementById('view-mode-toggle').click();
@@ -494,10 +497,18 @@
 
         document.getElementById('fit-page').onclick = () => {
              if(!canvases.length) return;
-             // Calculate multiplier needed to fit width perfectly to current container frame
+             // 同時符合寬度跟高度：取兩者中最小的比例
              const containerWidth = viewerContainer.clientWidth - 40;
+             const containerHeight = viewerContainer.clientHeight - 40;
              const baseWidth = parseFloat(canvases[0].getAttribute('data-base-width'));
-             currentScaleMultiplier = containerWidth / baseWidth;
+             const baseHeight = parseFloat(canvases[0].getAttribute('data-base-height'));
+             
+             const widthMultiplier = containerWidth / baseWidth;
+             const heightMultiplier = containerHeight / baseHeight;
+             
+             currentScaleMultiplier = Math.min(widthMultiplier, heightMultiplier);
+             if (currentScaleMultiplier < 0.2) currentScaleMultiplier = 0.2;
+             
              applyCSSZoom();
         };
 
