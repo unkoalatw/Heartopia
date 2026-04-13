@@ -5,15 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>心動小鎮書房</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入 PDF.js 來負責畫出 PDF -->
+    <!-- 引入 PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <style>
-        /* 定義一些心動小鎮風格的可愛顏色和字體 */
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
         
         body {
             font-family: 'Nunito', sans-serif;
-            background-color: #F8F0E5; /* 溫柔的米白色背景 */
+            background-color: #F8F0E5; 
             background-image: radial-gradient(#EADBC8 2px, transparent 2px);
             background-size: 30px 30px;
         }
@@ -40,14 +39,10 @@
             box-shadow: 0 5px 15px rgba(140, 106, 93, 0.3);
         }
 
-        .cute-btn:active {
-            transform: translateY(2px);
-            box-shadow: none;
-        }
-
         .book-item {
             cursor: pointer;
             transition: all 0.2s;
+            border: 2px solid transparent;
         }
 
         .book-item:hover {
@@ -60,187 +55,177 @@
             background-color: #DAC0A3;
             color: white;
             border-radius: 15px;
+            border: 2px solid #8C6A5D;
         }
 
-        /* 隱藏捲軸但保持可以捲動 */
-        ::-webkit-scrollbar {
-            width: 8px;
+        /* 自定義捲軸 */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #F8F0E5; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #DAC0A3; border-radius: 10px; }
+
+        /* 動畫效果 */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
         }
-        ::-webkit-scrollbar-track {
-            background: #F8F0E5; 
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #DAC0A3; 
-            border-radius: 10px;
-        }
+        .floating-bunny { animation: float 3s ease-in-out infinite; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 md:p-8">
 
     <div class="cute-card w-full max-w-6xl h-[85vh] flex flex-col md:flex-row overflow-hidden">
         
-        <!-- 左側：書櫃 (檔案列表) -->
+        <!-- 左側：書櫃 -->
         <div class="w-full md:w-1/4 bg-[#FAF6F0] p-6 border-b md:border-b-0 md:border-r-4 border-[#DAC0A3] flex flex-col">
             <h1 class="text-2xl font-black text-[#8C6A5D] mb-6 flex items-center gap-2">
                 <span>🧸</span> 我的小書櫃
             </h1>
             
             <div id="book-list" class="flex-1 overflow-y-auto space-y-2">
-                <!-- 書本按鈕會透過程式碼產生在這裡 -->
+                <!-- 由 JavaScript 產生 -->
             </div>
             
-            <div class="mt-4 text-sm text-[#8C6A5D] font-bold text-center bg-[#EADBC8] p-3 rounded-2xl border-2 border-[#DAC0A3]">
-                提示：點擊上方書本開始閱讀！✨
+            <div class="mt-4 text-xs text-[#8C6A5D] font-bold text-center bg-[#EADBC8] p-3 rounded-2xl border-2 border-[#DAC0A3]">
+                提示：檔案較大時，請耐心等候搬運工人喔！✨
             </div>
         </div>
 
-        <!-- 右側：閱讀桌 (PDF 顯示區) -->
+        <!-- 右側：閱讀區 -->
         <div class="w-full md:w-3/4 p-4 md:p-6 flex flex-col bg-white relative">
             
-            <!-- 載入中的動畫 -->
-            <div id="loading" class="hidden absolute inset-0 bg-white/80 z-10 flex flex-col items-center justify-center rounded-3xl">
-                <div class="text-5xl animate-bounce mb-4">🐰</div>
-                <div class="text-xl font-bold text-[#8C6A5D]">努力搬運書本中...</div>
+            <!-- 載入中遮罩 -->
+            <div id="loading" class="hidden absolute inset-0 bg-white/90 z-20 flex flex-col items-center justify-center rounded-3xl">
+                <div class="text-6xl floating-bunny mb-4">🐰</div>
+                <div class="text-xl font-bold text-[#8C6A5D]">正在努力搬運厚重的書本...</div>
+                <div id="loading-status" class="text-sm font-bold text-[#DAC0A3] mt-2">請稍候 (這本書有 78MB 喔！)</div>
             </div>
 
             <!-- 控制面板 -->
-            <div class="flex justify-between items-center mb-4 bg-[#F8F0E5] p-3 rounded-2xl border-2 border-[#DAC0A3]">
-                <h2 id="current-title" class="text-xl font-bold text-[#8C6A5D] truncate ml-2">歡迎來到書房！</h2>
-                <div class="flex items-center gap-3">
-                    <button id="prev-page" class="cute-btn px-4 py-2">⬅️ 上一頁</button>
-                    <span class="text-[#8C6A5D] font-bold">
+            <div class="flex flex-wrap justify-between items-center gap-3 mb-4 bg-[#F8F0E5] p-3 rounded-2xl border-2 border-[#DAC0A3]">
+                <h2 id="current-title" class="text-lg font-bold text-[#8C6A5D] truncate flex-1">歡迎來到小鎮書房！</h2>
+                <div class="flex items-center gap-2">
+                    <button id="prev-page" class="cute-btn px-3 py-1 text-sm md:text-base">上頁</button>
+                    <span class="text-[#8C6A5D] font-bold text-sm">
                         <span id="page-num">0</span> / <span id="page-count">0</span>
                     </span>
-                    <button id="next-page" class="cute-btn px-4 py-2">下一頁 ➡️</button>
+                    <button id="next-page" class="cute-btn px-3 py-1 text-sm md:text-base">下頁</button>
                 </div>
             </div>
 
-            <!-- PDF 畫布區 -->
-            <div class="flex-1 overflow-auto bg-[#FAF6F0] rounded-2xl border-4 border-[#DAC0A3] flex items-start justify-center p-4">
-                <canvas id="pdf-canvas" class="max-w-full shadow-lg rounded-lg"></canvas>
+            <!-- PDF 內容區 -->
+            <div class="flex-1 overflow-auto bg-[#FAF6F0] rounded-2xl border-4 border-[#DAC0A3] flex items-start justify-center p-2 md:p-4">
+                <canvas id="pdf-canvas" class="max-w-full shadow-md rounded-lg"></canvas>
             </div>
             
         </div>
     </div>
 
     <script>
-        // 設定 PDF.js 的工作路徑 (這是必須的，就像給工人發工具)
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-        // ==========================================
-        // 🛑 請在這裡填入你的 GitHub 資訊！🛑
-        // ==========================================
         const GITHUB_CONFIG = {
-            owner: 'unkoalatw', // 你的 GitHub 帳號名稱
-            repo: 'Heartopia',  // 你的檔案庫名稱
-            tag: 'v.1'          // Release 的 Tag (標籤)
+            owner: 'unkoalatw', 
+            repo: 'Heartopia',  
+            tag: 'v.1'          
         };
 
-        // 你的固定檔案列表 (對應你上傳的檔案)
         const PDF_FILES = [
             { id: 1, title: '🏠 心動小鎮 (Heartopia)', filename: 'Heartopia.pdf' }
         ];
 
-        // 狀態管理 (紀錄現在看哪一頁)
-        let pdfDoc = null;
-        let pageNum = 1;
-        let pageIsRendering = false;
-        let pageNumIsPending = null;
+        let pdfDoc = null,
+            pageNum = 1,
+            pageIsRendering = false,
+            pageNumIsPending = null;
 
         const canvas = document.getElementById('pdf-canvas');
         const ctx = canvas.getContext('2d');
         const loadingScreen = document.getElementById('loading');
+        const loadingStatus = document.getElementById('loading-status');
 
-        // 1. 建立左側書櫃的按鈕
         function renderBookList() {
             const listContainer = document.getElementById('book-list');
-            listContainer.innerHTML = '';
-
             PDF_FILES.forEach(file => {
                 const btn = document.createElement('div');
                 btn.className = 'book-item p-4 text-[#8C6A5D] font-bold text-lg';
                 btn.innerHTML = file.title;
                 btn.onclick = () => {
-                    // 移除所有人的 active 樣式
                     document.querySelectorAll('.book-item').forEach(el => el.classList.remove('active'));
                     btn.classList.add('active');
                     document.getElementById('current-title').innerText = file.title;
-                    loadPDFFromRelease(file.filename);
+                    loadPDF(file.filename);
                 };
                 listContainer.appendChild(btn);
             });
         }
 
-        // 2. 從 GitHub Release 直接載入 PDF (針對大檔案最佳化)
-        function loadPDFFromRelease(filename) {
+        async function loadPDF(filename) {
             showLoading(true);
+            loadingStatus.innerText = "正在向 GitHub 請求檔案...";
+
+            const rawUrl = `https://github.com/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/releases/download/${GITHUB_CONFIG.tag}/${filename}`;
             
-            // 組合 GitHub Release 的直接下載網址
-            const url = `https://github.com/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/releases/download/${GITHUB_CONFIG.tag}/${filename}`;
-            
-            // 你的檔案有將近 80MB，直接讓 PDF.js 透過網址讀取效能最好！
-            pdfjsLib.getDocument(url).promise.then(pdfDoc_ => {
-                pdfDoc = pdfDoc_;
+            // 🌟 更換為更穩定的大檔案代理服務 gh-proxy.com
+            const proxyUrl = `https://gh-proxy.com/${rawUrl}`;
+
+            try {
+                // 使用 fetch 先抓取 Blob，這樣可以掌握載入進度（如果需要）並避免一些 PDF.js 的直接跨域問題
+                const response = await fetch(proxyUrl);
+                
+                if (!response.ok) {
+                    if (response.status === 403) throw new Error("代理伺服器拒絕存取，可能流量過載，請稍後再試。");
+                    throw new Error(`伺服器回應錯誤 (${response.status})`);
+                }
+
+                const blob = await response.blob();
+                const arrayBuffer = await blob.arrayBuffer();
+
+                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+                pdfDoc = await loadingTask.promise;
+                
                 document.getElementById('page-count').textContent = pdfDoc.numPages;
-                pageNum = 1; // 回到第一頁
+                pageNum = 1;
                 renderPage(pageNum);
-            }).catch(err => {
+            } catch (err) {
                 console.error(err);
-                alert("載入 PDF 失敗了喔！\n1. 請確認 GitHub 帳號和 Repo 名稱是否填寫正確。\n2. 請確認該檔案庫 (Repository) 狀態是「公開 (Public)」的喔！");
+                alert("抱歉！搬運過程出錯了：\n" + err.message);
                 showLoading(false);
-            });
+            }
         }
 
-        // 4. 畫出指定的那一頁 PDF
         function renderPage(num) {
             pageIsRendering = true;
-
-            // 取得 PDF 頁面
             pdfDoc.getPage(num).then(page => {
-                // 設定縮放比例 (讓它大一點比較清楚)
+                // 為了手機顯示優化，根據容器寬度調整比例
                 const viewport = page.getViewport({ scale: 1.5 });
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
 
-                const renderCtx = {
-                    canvasContext: ctx,
-                    viewport: viewport
-                };
-
-                // 開始畫畫
+                const renderCtx = { canvasContext: ctx, viewport: viewport };
                 page.render(renderCtx).promise.then(() => {
                     pageIsRendering = false;
                     showLoading(false);
-
-                    // 如果有人在排隊等換頁，就繼續換
                     if (pageNumIsPending !== null) {
                         renderPage(pageNumIsPending);
                         pageNumIsPending = null;
                     }
                 });
-
                 document.getElementById('page-num').textContent = num;
             });
         }
 
-        // 5. 排隊換頁機制
         function queueRenderPage(num) {
-            if (pageIsRendering) {
-                pageNumIsPending = num;
-            } else {
-                renderPage(num);
-            }
+            if (pageIsRendering) { pageNumIsPending = num; } 
+            else { renderPage(num); }
         }
 
-        // 上一頁
         document.getElementById('prev-page').addEventListener('click', () => {
             if (pageNum <= 1 || !pdfDoc) return;
             pageNum--;
             queueRenderPage(pageNum);
         });
 
-        // 下一頁
         document.getElementById('next-page').addEventListener('click', () => {
             if (!pdfDoc || pageNum >= pdfDoc.numPages) return;
             pageNum++;
@@ -251,9 +236,7 @@
             loadingScreen.style.display = show ? 'flex' : 'none';
         }
 
-        // 啟動書櫃！
         renderBookList();
-
     </script>
 </body>
 </html>
