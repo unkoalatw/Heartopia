@@ -61,32 +61,60 @@
             border: 2px solid #8C6A5D;
         }
 
-        /* 縮圖選單樣式 */
+        /* 側邊欄過渡 */
+        #sidebar {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #sidebar.collapsed {
+            width: 0 !important;
+            min-width: 0 !important;
+            padding: 0 !important;
+            overflow: hidden;
+            opacity: 0;
+            border: none !important;
+        }
+
+        /* 縮圖選單優化 */
         .thumb-item {
             cursor: pointer;
-            border: 3px solid transparent;
-            border-radius: 10px;
-            transition: all 0.2s;
+            border: 2px solid #EADBC8;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             background-color: white;
-            padding: 5px;
+            padding: 4px;
             text-align: center;
+            position: relative;
         }
 
         .thumb-item:hover {
             border-color: #DAC0A3;
-            transform: scale(1.05);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(140, 106, 93, 0.15);
         }
 
         .thumb-item.active {
             border-color: #8C6A5D;
+            background-color: #FFF9F2;
+            box-shadow: 0 4px 15px rgba(140, 106, 93, 0.2);
+            z-index: 1;
+        }
+
+        .thumb-placeholder {
+            aspect-ratio: 1 / 1.4;
             background-color: #F8F0E5;
-            box-shadow: 0 5px 15px rgba(140, 106, 93, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #DAC0A3;
+            font-size: 20px;
         }
 
         .thumb-canvas {
             width: 100%;
             height: auto;
-            border-radius: 5px;
+            border-radius: 8px;
             display: block;
         }
 
@@ -164,28 +192,31 @@
 
         <!-- 左側：多功能側欄 -->
         <div id="sidebar"
-            class="w-full md:w-1/4 bg-[#FAF6F0] p-4 border-b md:border-b-0 md:border-r-4 border-[#DAC0A3] flex flex-col transition-all duration-300">
+            class="w-full md:w-1/4 bg-[#FAF6F0] p-4 border-b md:border-b-0 md:border-r-4 border-[#DAC0A3] flex flex-col z-30">
             
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between mb-6">
                 <h1 class="text-xl font-black text-[#8C6A5D] flex items-center gap-2">
-                    <span id="sidebar-icon">📚</span> <span id="sidebar-title">我的書櫃</span>
+                    <span id="sidebar-icon" class="text-2xl">📚</span> <span id="sidebar-title">我的書櫃</span>
                 </h1>
-                <button id="view-mode-toggle" class="text-xs bg-[#DAC0A3] text-white px-2 py-1 rounded-full font-bold hover:bg-[#8C6A5D]">切換模式</button>
+                <button id="view-mode-toggle" class="text-[10px] bg-[#DAC0A3] text-white px-3 py-1.5 rounded-full font-black hover:bg-[#8C6A5D] transition-colors uppercase tracking-widest shadow-sm">切換模式</button>
             </div>
 
-            <!-- 書櫃模式 -->
-            <div id="book-list" class="flex-1 overflow-y-auto space-y-2">
-                <!-- 由 JavaScript 動態產生 -->
-            </div>
+            <!-- 內容容器 -->
+            <div class="flex-1 overflow-hidden flex flex-col">
+                <!-- 書櫃模式 -->
+                <div id="book-list" class="flex-1 overflow-y-auto space-y-3 pr-1">
+                    <!-- 由 JavaScript 動態產生 -->
+                </div>
 
-            <!-- 縮圖模式 (預設隱藏) -->
-            <div id="thumbnail-list" class="hidden flex-1 overflow-y-auto grid grid-cols-2 gap-3 p-2">
-                <!-- 由 JavaScript 動態產生 -->
+                <!-- 縮圖模式 (預設隱藏) -->
+                <div id="thumbnail-list" class="hidden flex-1 overflow-y-auto grid grid-cols-2 gap-4 p-1">
+                    <!-- 由 JavaScript 動態產生 -->
+                </div>
             </div>
 
             <div
-                class="mt-4 text-[10px] text-[#8C6A5D] font-bold text-center bg-[#EADBC8] p-2 rounded-xl border-2 border-[#DAC0A3]">
-                提示：縮圖模式可快速跳頁！✨
+                class="mt-4 text-[10px] text-[#8C6A5D] opacity-70 font-bold text-center bg-[#EADBC8]/30 p-3 rounded-2xl border border-[#DAC0A3]/50">
+                ✨ 提示：縮圖模式下可快速翻閱頁面
             </div>
         </div>
 
@@ -353,7 +384,7 @@
                 await autoFitWidth();
                 renderPage(pageNum);
 
-                // 同步生成縮圖
+                // 同步生成縮圖 (不使用 await 避免阻塞主頁面)
                 renderThumbnails();
 
             } catch (err) {
@@ -412,18 +443,34 @@
 
         async function renderThumbnails() {
             thumbnailList.innerHTML = '';
-            for (let i = 1; i <= pdfDoc.numPages; i++) {
-                const page = await pdfDoc.getPage(i);
-                const viewport = page.getViewport({ scale: 0.2 });
-                
+            const total = pdfDoc.numPages;
+            
+            // 建立所有佔位符
+            const items = [];
+            for (let i = 1; i <= total; i++) {
                 const thumbItem = document.createElement('div');
-                thumbItem.className = 'thumb-item';
+                thumbItem.className = 'thumb-item' + (i === pageNum ? ' active' : '');
                 thumbItem.setAttribute('data-page', i);
+                thumbItem.innerHTML = `
+                    <div class="thumb-placeholder" id="thumb-p-${i}">⏳</div>
+                    <div class="text-[10px] font-black text-[#8C6A5D] mt-1.5 px-1">${i}</div>
+                `;
                 thumbItem.onclick = () => {
                     pageNum = i;
                     queueRenderPage(i);
                 };
+                thumbnailList.appendChild(thumbItem);
+                items.push(thumbItem);
+            }
 
+            // 非同步渲染，每幀渲染一個，不阻塞 UI
+            for (let i = 1; i <= total; i++) {
+                // 等待微小時間讓出主執行緒
+                await new Promise(r => requestAnimationFrame(r));
+                
+                const page = await pdfDoc.getPage(i);
+                const viewport = page.getViewport({ scale: 0.25 });
+                
                 const thumbCanvas = document.createElement('canvas');
                 thumbCanvas.className = 'thumb-canvas';
                 const tCtx = thumbCanvas.getContext('2d');
@@ -433,13 +480,11 @@
                 const renderCtx = { canvasContext: tCtx, viewport: viewport };
                 await page.render(renderCtx).promise;
 
-                const pageLabel = document.createElement('div');
-                pageLabel.className = 'text-[10px] font-bold text-[#8C6A5D] mt-1';
-                pageLabel.innerText = i;
-
-                thumbItem.appendChild(thumbCanvas);
-                thumbItem.appendChild(pageLabel);
-                thumbnailList.appendChild(thumbItem);
+                // 替換佔位符
+                const placeholder = document.getElementById(`thumb-p-${i}`);
+                if (placeholder) {
+                    placeholder.replaceWith(thumbCanvas);
+                }
             }
         }
 
@@ -499,13 +544,7 @@
         };
 
         document.getElementById('toggle-sidebar').onclick = () => {
-            if (window.innerWidth < 768) {
-                sidebar.classList.toggle('hidden');
-            } else {
-                sidebar.style.width = sidebar.style.width === '0px' ? '25%' : '0px';
-                sidebar.style.padding = sidebar.style.padding === '0px' ? '1rem' : '0px';
-                sidebar.style.opacity = sidebar.style.opacity === '0' ? '1' : '0';
-            }
+            sidebar.classList.toggle('collapsed');
         };
 
         document.getElementById('view-mode-toggle').onclick = () => {
