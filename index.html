@@ -128,8 +128,84 @@
         
         <!-- Loading Screen -->
         <div id="loading" class="absolute inset-0 bg-[#F8F0E5] z-[100] flex flex-col items-center justify-center p-8 text-center transition-opacity duration-500">
-            <div class="mb-6 w-full max-w-xs md:max-w-sm px-4">
-                <img src="gemini-svg.svg" class="w-full h-auto drop-shadow-xl" alt="Loading Car">
+            <div class="mb-6 w-full max-w-sm px-4 drop-shadow-2xl">
+                <!-- 直接嵌入 SVG 以確保動畫正常播放 -->
+                <svg width="100%" height="auto" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" class="rounded-xl overflow-hidden">
+                    <style>
+                        @keyframes road-move {
+                            0% { transform: translateX(0); }
+                            100% { transform: translateX(-500px); }
+                        }
+                        @keyframes wheel-rotate {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                        @keyframes car-bob {
+                            0%, 100% { transform: translateY(0); }
+                            50% { transform: translateY(-5px); }
+                        }
+                        @keyframes tree-move {
+                            0% { transform: translateX(1000px); }
+                            100% { transform: translateX(-100px); }
+                        }
+                    </style>
+                    <defs>
+                        <linearGradient id="sky-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#87CEEB;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#e0f7fa;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="road-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#333;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#555;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="car-body-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4a90e2;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#007aff;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <rect width="1000" height="300" fill="url(#sky-gradient)" />
+                    <rect y="300" width="1000" height="200" fill="#7cfc00" />
+                    <g style="animation: road-move 2s linear infinite;">
+                        <rect x="0" y="300" width="1500" height="150" fill="url(#road-gradient)" />
+                        <rect x="0" y="360" width="1500" height="10" fill="white" />
+                        <g stroke="white" stroke-width="6" stroke-dasharray="50, 100">
+                            <line x1="0" y1="375" x2="1500" y2="375" />
+                        </g>
+                    </g>
+                    <g style="animation: tree-move 5s linear infinite;">
+                        <circle cx="20" cy="270" r="30" fill="#228B22"/>
+                        <rect x="15" y="290" width="10" height="50" fill="#8B4513"/>
+                    </g>
+                    <g style="animation: tree-move 5s linear infinite; animation-delay: -2s;">
+                        <circle cx="20" cy="270" r="25" fill="#228B22"/>
+                        <rect x="15" y="290" width="8" height="40" fill="#8B4513"/>
+                    </g>
+                    <g style="animation: tree-move 5s linear infinite; animation-delay: -3.5s;">
+                        <circle cx="20" cy="270" r="35" fill="#228B22"/>
+                        <rect x="15" y="290" width="12" height="60" fill="#8B4513"/>
+                    </g>
+                    <g style="animation: car-bob 0.5s ease-in-out infinite;">
+                        <path d="M100 320 L150 280 L280 280 L350 320 L350 380 L100 380 Z" fill="url(#car-body-gradient)" />
+                        <path d="M160 285 L270 285 L260 315 L170 315 Z" fill="#b3e5fc" stroke="#4a90e2" stroke-width="2" />
+                        <path d="M280 285 L320 315 L280 315 Z" fill="#b3e5fc" stroke="#4a90e2" stroke-width="2" />
+                        <g style="transform-origin: 150px 380px; animation: wheel-rotate 1s linear infinite;">
+                            <circle cx="150" cy="380" r="25" fill="#222" />
+                            <circle cx="150" cy="380" r="15" fill="#eee" stroke="#666" stroke-width="3" />
+                            <rect x="147" y="365" width="6" height="30" fill="#666" />
+                            <rect x="135" y="377" width="30" height="6" fill="#666" />
+                        </g>
+                        <g style="transform-origin: 300px 380px; animation: wheel-rotate 1s linear infinite;">
+                            <circle cx="300" cy="380" r="25" fill="#222" />
+                            <circle cx="300" cy="380" r="15" fill="#eee" stroke="#666" stroke-width="3" />
+                            <rect x="297" y="365" width="6" height="30" fill="#666" />
+                            <rect x="285" y="377" width="30" height="6" fill="#666" />
+                        </g>
+                        <circle cx="110" cy="335" r="5" fill="#fff9c4" />
+                        <path d="M110 335 L80 330 L80 340 Z" fill="#fff9c4" opacity="0.6"/>
+                        <rect x="340" y="330" width="10" height="20" rx="3" fill="#ff5252" />
+                        <text x="225" y="360" font-family="Verdana" font-size="20" fill="white" text-anchor="middle">GO!</text>
+                    </g>
+                </svg>
             </div>
             <div class="text-2xl md:text-3xl font-black text-[#8C6A5D] mb-4">專車正在趕路中...</div>
             <div class="w-64">
