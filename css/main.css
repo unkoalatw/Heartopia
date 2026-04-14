@@ -4,6 +4,20 @@ body {
     background-color: #F8F0E5;
     background-image: radial-gradient(#EADBC8 2px, transparent 2px);
     background-size: 30px 30px;
+    
+    /* 防止輕易複製 UI 文字 */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* 允許輸入框可以選取文字 */
+input, textarea {
+    -webkit-user-select: auto;
+    -moz-user-select: auto;
+    -ms-user-select: auto;
+    user-select: auto;
 }
 .cute-card {
     background-color: #FFFFFF;

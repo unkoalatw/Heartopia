@@ -13,6 +13,8 @@ window.App = {
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
         }
 
+        this.setupAntiTheft(); // 啟動防竊機制
+        
         this.renderBookList();
         this.bindToolbar();
         this.bindTouchGestures(); // 啟用手機手勢
@@ -30,6 +32,28 @@ window.App = {
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW setup failed:', err));
         }
+    },
+
+    setupAntiTheft() {
+        // 禁用右鍵選單
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        
+        // 禁用常用開發者工具快捷鍵 (F12, Ctrl+U, Ctrl+Shift+I 等)
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12' || e.code === 'F12') e.preventDefault();
+            if (e.ctrlKey && e.shiftKey && ['I', 'i', 'J', 'j', 'C', 'c'].includes(e.key)) e.preventDefault();
+            if (e.ctrlKey && ['U', 'u', 'S', 's'].includes(e.key)) e.preventDefault();
+        });
+
+        // 簡單的反調試 (如果有人打開 Console 會稍微停頓)
+        setInterval(() => {
+            const before = new Date().getTime();
+            debugger;
+            const after = new Date().getTime();
+            if (after - before > 100) {
+                // Detected debugger
+            }
+        }, 1000);
     },
 
     renderBookList() {
