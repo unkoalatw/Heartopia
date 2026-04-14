@@ -255,22 +255,35 @@ class UIManager {
     makeDraggable(el) {
         let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
         const header = el.querySelector('.snippet-header');
-        header.onmousedown = dragMouseDown;
+        
+        // Mouse Events
+        header.onmousedown = (e) => dragStart(e, e.clientX, e.clientY);
+        // Touch Events
+        header.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            dragStart(e, touch.clientX, touch.clientY);
+        }, { passive: false });
 
-        function dragMouseDown(e) {
+        function dragStart(e, clientX, clientY) {
             e.preventDefault();
-            pos3 = e.clientX;
-            pos4 = e.clientY;
+            pos3 = clientX;
+            pos4 = clientY;
             document.onmouseup = closeDragElement;
-            document.onmousemove = elementDrag;
+            document.onmousemove = (ev) => elementDrag(ev, ev.clientX, ev.clientY);
+            
+            document.addEventListener('touchend', closeDragElement);
+            document.addEventListener('touchmove', (ev) => {
+                const touch = ev.touches[0];
+                elementDrag(ev, touch.clientX, touch.clientY);
+            }, { passive: false });
         }
 
-        function elementDrag(e) {
-            e.preventDefault();
-            pos1 = pos3 - e.clientX;
-            pos2 = pos4 - e.clientY;
-            pos3 = e.clientX;
-            pos4 = e.clientY;
+        function elementDrag(e, clientX, clientY) {
+            // No preventDefault here to allow some scroll if needed, but usually we want to block it for dragging
+            pos1 = pos3 - clientX;
+            pos2 = pos4 - clientY;
+            pos3 = clientX;
+            pos4 = clientY;
             el.style.top = (el.offsetTop - pos2) + "px";
             el.style.left = (el.offsetLeft - pos1) + "px";
         }
@@ -278,6 +291,8 @@ class UIManager {
         function closeDragElement() {
             document.onmouseup = null;
             document.onmousemove = null;
+            document.removeEventListener('touchend', closeDragElement);
+            // Non-trivial to remove anonymous touchmove, so we usually use named one, but this is a one-off
         }
     }
 }

@@ -15,6 +15,7 @@ window.App = {
 
         this.renderBookList();
         this.bindToolbar();
+        this.bindTouchGestures(); // 啟用手機手勢
         
         // Scrub bar setup
         if (Store.settings.showScrubBar) {
