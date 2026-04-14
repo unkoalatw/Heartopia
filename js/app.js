@@ -12,8 +12,6 @@ window.App = {
         if (typeof pdfjsLib !== 'undefined') {
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
         }
-        
-        Store.init();
 
         this.renderBookList();
         this.bindToolbar();

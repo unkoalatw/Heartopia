@@ -44,4 +44,5 @@ const Store = {
     }
 };
 
+Store.init();
 window.Store = Store;
