@@ -96,6 +96,9 @@ window.App = {
 
                 // Setup Main Page
                 const viewport = (await result.doc.getPage(i)).getViewport({scale: this.baseScale, rotation: this.rotation});
+                const mainCanvasWrapper = document.createElement('div');
+                mainCanvasWrapper.className = 'relative group';
+                
                 const mainCanvas = document.createElement('canvas'); // Placeholder
                 mainCanvas.id = `page-${i}`;
                 mainCanvas.className = 'max-w-full shadow-xl rounded-lg bg-white shrink-0 transition-none duration-0';
@@ -103,7 +106,17 @@ window.App = {
                 mainCanvas.style.height = Math.floor(viewport.height) + "px";
                 mainCanvas.setAttribute('data-base-width', viewport.width);
                 mainCanvas.setAttribute('data-base-height', viewport.height);
-                UI.els.viewer.appendChild(mainCanvas);
+                
+                // Add Pin Button for Game Guide convenience
+                const pinBtn = document.createElement('button');
+                pinBtn.className = 'absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity bg-[#8C6A5D] text-white p-2 rounded-full shadow-lg hover:scale-110 active:scale-95';
+                pinBtn.innerHTML = '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"></path></svg>';
+                pinBtn.title = "釘選此頁在地圖小視窗";
+                pinBtn.onclick = () => UI.createFloatingSnippet(i, mainCanvas);
+
+                mainCanvasWrapper.appendChild(mainCanvas);
+                mainCanvasWrapper.appendChild(pinBtn);
+                UI.els.viewer.appendChild(mainCanvasWrapper);
                 PDFLoader.canvases.push(mainCanvas);
                 
                 // If not lazy loading, immediately render content

@@ -203,7 +203,6 @@ class UIManager {
                 div.className = 'toc-item truncate';
                 div.innerText = item.title;
                 div.onclick = () => {
-                    // Item dest can be an array, name, or string.
                     if (typeof item.dest === 'string') {
                         onNavigate(item.dest);
                     } else if (Array.isArray(item.dest)) {
@@ -219,6 +218,61 @@ class UIManager {
         };
 
         this.els.tocList.appendChild(renderLevel(outline, 0));
+    }
+
+    // --- Snippet (Pin) Feature ---
+    createFloatingSnippet(pageNum, sourceCanvas) {
+        const id = `snippet-${Date.now()}`;
+        const snippet = document.createElement('div');
+        snippet.id = id;
+        snippet.className = 'floating-snippet';
+        snippet.innerHTML = `
+            <div class="snippet-header">
+                <span>頁面 ${pageNum}</span>
+                <button onclick="this.parentElement.parentElement.remove()">✕</button>
+            </div>
+            <div class="snippet-body">
+                <canvas id="canvas-${id}"></canvas>
+            </div>
+        `;
+        document.body.appendChild(snippet);
+        
+        const targetCanvas = document.getElementById(`canvas-${id}`);
+        const ctx = targetCanvas.getContext('2d');
+        targetCanvas.width = sourceCanvas.width;
+        targetCanvas.height = sourceCanvas.height;
+        ctx.drawImage(sourceCanvas, 0, 0);
+
+        this.makeDraggable(snippet);
+    }
+
+    makeDraggable(el) {
+        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+        const header = el.querySelector('.snippet-header');
+        header.onmousedown = dragMouseDown;
+
+        function dragMouseDown(e) {
+            e.preventDefault();
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            document.onmouseup = closeDragElement;
+            document.onmousemove = elementDrag;
+        }
+
+        function elementDrag(e) {
+            e.preventDefault();
+            pos1 = pos3 - e.clientX;
+            pos2 = pos4 - e.clientY;
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            el.style.top = (el.offsetTop - pos2) + "px";
+            el.style.left = (el.offsetLeft - pos1) + "px";
+        }
+
+        function closeDragElement() {
+            document.onmouseup = null;
+            document.onmousemove = null;
+        }
     }
 }
 
