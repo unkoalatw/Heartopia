@@ -71,8 +71,18 @@
             <div class="flex-1 overflow-hidden flex flex-col">
                 <div id="book-list" class="flex-1 overflow-y-auto space-y-3 pr-1"></div>
                 <div id="thumbnail-list" class="hidden flex-1 overflow-y-auto grid grid-cols-2 gap-4 p-1"></div>
-                <div id="toc-list" class="hidden flex-1 overflow-y-auto px-1"></div>
-                <div id="notes-view" class="hidden flex-1 flex flex-col h-full relative group">
+                
+                <div id="toc-view" class="hidden flex-1 flex-col h-full">
+                    <div class="px-2 pb-2">
+                        <div class="relative">
+                            <input type="text" id="toc-search" placeholder="搜尋標題..." class="w-full py-1.5 pl-8 pr-2 rounded-lg border-2 border-[#EADBC8] outline-none text-[#8C6A5D] text-sm bg-white focus:border-[#DAC0A3] transition-colors">
+                            <svg class="w-4 h-4 text-[#DAC0A3] absolute left-2.5 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                    </div>
+                    <div id="toc-list" class="flex-1 overflow-y-auto px-1"></div>
+                </div>
+
+                <div id="notes-view" class="hidden flex-1 flex-col h-full relative group">
                     <textarea id="note-textarea" class="flex-1 w-full p-3 rounded-xl border-2 border-[#EADBC8] outline-none text-[#8C6A5D] text-sm resize-none" placeholder="在此輸入筆記... 會自動儲存至本地快取。"></textarea>
                 </div>
             </div>

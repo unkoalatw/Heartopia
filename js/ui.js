@@ -8,7 +8,9 @@ class UIManager {
             sidebar: document.getElementById('sidebar'),
             bookList: document.getElementById('book-list'),
             thumbnailList: document.getElementById('thumbnail-list'),
+            tocView: document.getElementById('toc-view'),
             tocList: document.getElementById('toc-list'),
+            tocSearch: document.getElementById('toc-search'),
             notesView: document.getElementById('notes-view'),
             viewer: document.getElementById('pdf-viewer-container'),
             pageInput: document.getElementById('page-input'),
@@ -88,13 +90,17 @@ class UIManager {
         // Reset views
         this.els.bookList.classList.add('hidden');
         this.els.thumbnailList.classList.add('hidden');
-        this.els.tocList.classList.add('hidden');
+        this.els.tocView.classList.add('hidden');
+        this.els.tocView.classList.remove('flex');
         this.els.notesView.classList.add('hidden');
 
         // Show active
         if (activeTab === 'books') this.els.bookList.classList.remove('hidden');
         if (activeTab === 'thumbs') this.els.thumbnailList.classList.remove('hidden');
-        if (activeTab === 'toc') this.els.tocList.classList.remove('hidden');
+        if (activeTab === 'toc') {
+            this.els.tocView.classList.remove('hidden');
+            this.els.tocView.classList.add('flex');
+        }
         if (activeTab === 'notes') {
             this.els.notesView.classList.remove('hidden');
             if (window.App && window.App.currentFilename) {
