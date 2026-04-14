@@ -4,123 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>心動小鎮書房</title>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="theme-color" content="#DAC0A3">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
-        body {
-            font-family: 'Nunito', sans-serif;
-            background-color: #F8F0E5;
-            background-image: radial-gradient(#EADBC8 2px, transparent 2px);
-            background-size: 30px 30px;
-        }
-        .cute-card {
-            background-color: #FFFFFF;
-            border-radius: 30px;
-            box-shadow: 0 10px 30px rgba(218, 192, 163, 0.5);
-            border: 4px solid #DAC0A3;
-        }
-        .cute-btn {
-            background-color: #EADBC8;
-            color: #8C6A5D;
-            border: 3px solid #DAC0A3;
-            border-radius: 20px;
-            font-weight: 900;
-            transition: all 0.2s ease;
-        }
-        .cute-btn:hover {
-            background-color: #DAC0A3;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(140, 106, 93, 0.3);
-        }
-        .book-item {
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 2px solid transparent;
-        }
-        .book-item:hover {
-            background-color: #F8F0E5;
-            border-radius: 15px;
-            transform: translateX(5px);
-        }
-        .book-item.active {
-            background-color: #DAC0A3;
-            color: white;
-            border-radius: 15px;
-            border: 2px solid #8C6A5D;
-        }
-        #sidebar {
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        #sidebar.collapsed {
-            width: 0 !important;
-            min-width: 0 !important;
-            max-width: 0 !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            border: none !important;
-            opacity: 0;
-            overflow: hidden;
-        }
-        .thumb-item {
-            cursor: pointer;
-            border: 2px solid #EADBC8;
-            border-radius: 12px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background-color: white;
-            padding: 4px;
-            text-align: center;
-            position: relative;
-        }
-        .thumb-item:hover {
-            border-color: #DAC0A3;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(140, 106, 93, 0.15);
-        }
-        .thumb-item.active {
-            border-color: #8C6A5D;
-            background-color: #FFF9F2;
-            box-shadow: 0 4px 15px rgba(140, 106, 93, 0.2);
-            z-index: 1;
-        }
-        .thumb-canvas {
-            width: 100%;
-            height: auto;
-            border-radius: 8px;
-            display: block;
-        }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #F8F0E5; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: #DAC0A3; border-radius: 10px; }
-        .progress-container {
-            width: 100%;
-            height: 12px;
-            background-color: #EADBC8;
-            border-radius: 10px;
-            border: 2px solid #DAC0A3;
-            overflow: hidden;
-            margin-top: 15px;
-        }
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #8C6A5D, #DAC0A3);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-        .fun-fact-box {
-            background-color: #F8F0E5;
-            border-left: 5px solid #DAC0A3;
-            padding: 10px 20px;
-            margin-top: 20px;
-            border-radius: 10px;
-            max-width: 300px;
-            animation: fadeIn 0.5s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
+    <link rel="stylesheet" href="./css/main.css">
 </head>
 <body class="min-h-screen flex items-center justify-center p-2 md:p-8">
 
@@ -128,80 +16,22 @@
         
         <!-- Loading Screen -->
         <div id="loading" class="absolute inset-0 bg-[#F8F0E5] z-[100] flex flex-col items-center justify-center p-8 text-center transition-opacity duration-500">
-            <div class="mb-6 w-full max-w-sm px-4 drop-shadow-2xl">
-                <!-- 直接嵌入 SVG 以確保動畫正常播放 -->
+            <div class="mb-6 w-full max-w-xs md:max-w-sm px-4 drop-shadow-2xl">
                 <svg width="100%" height="auto" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" class="rounded-xl overflow-hidden">
-                    <style>
-                        @keyframes road-move {
-                            0% { transform: translateX(0); }
-                            100% { transform: translateX(-500px); }
-                        }
-                        @keyframes wheel-rotate {
-                            0% { transform: rotate(0deg); }
-                            100% { transform: rotate(360deg); }
-                        }
-                        @keyframes car-bob {
-                            0%, 100% { transform: translateY(0); }
-                            50% { transform: translateY(-5px); }
-                        }
-                        @keyframes tree-move {
-                            0% { transform: translateX(1000px); }
-                            100% { transform: translateX(-100px); }
-                        }
-                    </style>
-                    <defs>
-                        <linearGradient id="sky-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#87CEEB;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#e0f7fa;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="road-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#333;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#555;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="car-body-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#4a90e2;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#007aff;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
+                    <style>@keyframes road-move{0%{transform:translateX(0)}100%{transform:translateX(-500px)}}@keyframes wheel-rotate{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}@keyframes car-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}@keyframes tree-move{0%{transform:translateX(1000px)}100%{transform:translateX(-100px)}}</style>
+                    <defs><linearGradient id="sky-gradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#87CEEB;stop-opacity:1" /><stop offset="100%" style="stop-color:#e0f7fa;stop-opacity:1" /></linearGradient><linearGradient id="road-gradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#333;stop-opacity:1" /><stop offset="100%" style="stop-color:#555;stop-opacity:1" /></linearGradient><linearGradient id="car-body-gradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#4a90e2;stop-opacity:1" /><stop offset="100%" style="stop-color:#007aff;stop-opacity:1" /></linearGradient></defs>
                     <rect width="1000" height="300" fill="url(#sky-gradient)" />
                     <rect y="300" width="1000" height="200" fill="#7cfc00" />
-                    <g style="animation: road-move 2s linear infinite;">
-                        <rect x="0" y="300" width="1500" height="150" fill="url(#road-gradient)" />
-                        <rect x="0" y="360" width="1500" height="10" fill="white" />
-                        <g stroke="white" stroke-width="6" stroke-dasharray="50, 100">
-                            <line x1="0" y1="375" x2="1500" y2="375" />
-                        </g>
-                    </g>
-                    <g style="animation: tree-move 5s linear infinite;">
-                        <circle cx="20" cy="270" r="30" fill="#228B22"/>
-                        <rect x="15" y="290" width="10" height="50" fill="#8B4513"/>
-                    </g>
-                    <g style="animation: tree-move 5s linear infinite; animation-delay: -2s;">
-                        <circle cx="20" cy="270" r="25" fill="#228B22"/>
-                        <rect x="15" y="290" width="8" height="40" fill="#8B4513"/>
-                    </g>
-                    <g style="animation: tree-move 5s linear infinite; animation-delay: -3.5s;">
-                        <circle cx="20" cy="270" r="35" fill="#228B22"/>
-                        <rect x="15" y="290" width="12" height="60" fill="#8B4513"/>
-                    </g>
+                    <g style="animation: road-move 2s linear infinite;"><rect x="0" y="300" width="1500" height="150" fill="url(#road-gradient)" /><rect x="0" y="360" width="1500" height="10" fill="white" /><g stroke="white" stroke-width="6" stroke-dasharray="50, 100"><line x1="0" y1="375" x2="1500" y2="375" /></g></g>
+                    <g style="animation: tree-move 5s linear infinite;"><circle cx="20" cy="270" r="30" fill="#228B22"/><rect x="15" y="290" width="10" height="50" fill="#8B4513"/></g>
+                    <g style="animation: tree-move 5s linear infinite; animation-delay: -2s;"><circle cx="20" cy="270" r="25" fill="#228B22"/><rect x="15" y="290" width="8" height="40" fill="#8B4513"/></g>
                     <g style="animation: car-bob 0.5s ease-in-out infinite;">
                         <path d="M100 320 L150 280 L280 280 L350 320 L350 380 L100 380 Z" fill="url(#car-body-gradient)" />
                         <path d="M160 285 L270 285 L260 315 L170 315 Z" fill="#b3e5fc" stroke="#4a90e2" stroke-width="2" />
                         <path d="M280 285 L320 315 L280 315 Z" fill="#b3e5fc" stroke="#4a90e2" stroke-width="2" />
-                        <g style="transform-origin: 150px 380px; animation: wheel-rotate 1s linear infinite;">
-                            <circle cx="150" cy="380" r="25" fill="#222" />
-                            <circle cx="150" cy="380" r="15" fill="#eee" stroke="#666" stroke-width="3" />
-                            <rect x="147" y="365" width="6" height="30" fill="#666" />
-                            <rect x="135" y="377" width="30" height="6" fill="#666" />
-                        </g>
-                        <g style="transform-origin: 300px 380px; animation: wheel-rotate 1s linear infinite;">
-                            <circle cx="300" cy="380" r="25" fill="#222" />
-                            <circle cx="300" cy="380" r="15" fill="#eee" stroke="#666" stroke-width="3" />
-                            <rect x="297" y="365" width="6" height="30" fill="#666" />
-                            <rect x="285" y="377" width="30" height="6" fill="#666" />
-                        </g>
-                        <circle cx="110" cy="335" r="5" fill="#fff9c4" />
-                        <path d="M110 335 L80 330 L80 340 Z" fill="#fff9c4" opacity="0.6"/>
+                        <g style="transform-origin: 150px 380px; animation: wheel-rotate 1s linear infinite;"><circle cx="150" cy="380" r="25" fill="#222" /><circle cx="150" cy="380" r="15" fill="#eee" stroke="#666" stroke-width="3" /><rect x="147" y="365" width="6" height="30" fill="#666" /><rect x="135" y="377" width="30" height="6" fill="#666" /></g>
+                        <g style="transform-origin: 300px 380px; animation: wheel-rotate 1s linear infinite;"><circle cx="300" cy="380" r="25" fill="#222" /><circle cx="300" cy="380" r="15" fill="#eee" stroke="#666" stroke-width="3" /><rect x="297" y="365" width="6" height="30" fill="#666" /><rect x="285" y="377" width="30" height="6" fill="#666" /></g>
+                        <circle cx="110" cy="335" r="5" fill="#fff9c4" /><path d="M110 335 L80 330 L80 340 Z" fill="#fff9c4" opacity="0.6"/>
                         <rect x="340" y="330" width="10" height="20" rx="3" fill="#ff5252" />
                         <text x="225" y="360" font-family="Verdana" font-size="20" fill="white" text-anchor="middle">GO!</text>
                     </g>
@@ -209,9 +39,7 @@
             </div>
             <div class="text-2xl md:text-3xl font-black text-[#8C6A5D] mb-4">專車正在趕路中...</div>
             <div class="w-64">
-                <div class="progress-container">
-                    <div id="progress-bar" class="progress-bar"></div>
-                </div>
+                <div class="progress-container"><div id="progress-bar" class="progress-bar"></div></div>
                 <div id="loading-status" class="text-sm font-bold text-[#8C6A5D] mt-2">引擎發動中！</div>
             </div>
             <div class="fun-fact-box">
@@ -222,18 +50,31 @@
 
         <!-- Sidebar -->
         <div id="sidebar" class="w-full md:w-1/4 bg-[#FAF6F0] p-4 border-b md:border-b-0 md:border-r-4 border-[#DAC0A3] flex flex-col z-30">
-            <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center justify-between mb-4">
                 <h1 class="text-xl font-black text-[#8C6A5D] flex items-center gap-2">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                    <span id="sidebar-title">我的書櫃</span>
+                    <span id="sidebar-title">我的區塊</span>
                 </h1>
-                <button id="view-mode-toggle" class="text-[10px] bg-[#DAC0A3] text-white px-3 py-1.5 rounded-full font-black hover:bg-[#8C6A5D] transition-colors shadow-sm flex items-center gap-1">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg> 切換
+                <button id="settings-btn" class="cute-btn w-8 h-8 flex items-center justify-center border-2 border-[#DAC0A3] text-[#8C6A5D] bg-white rounded-full">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                 </button>
             </div>
+            
+            <!-- Tabs -->
+            <div class="flex items-center gap-1 mb-4 bg-[#EADBC8] p-1 rounded-xl">
+               <button id="tab-books" class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-white text-[#8C6A5D] transition-colors">書櫃</button>
+               <button id="tab-thumbs" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-[#DAC0A3] transition-colors">縮圖</button>
+               <button id="tab-toc" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-[#DAC0A3] transition-colors">目錄</button>
+               <button id="tab-notes" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-[#DAC0A3] transition-colors">筆記</button>
+            </div>
+
             <div class="flex-1 overflow-hidden flex flex-col">
                 <div id="book-list" class="flex-1 overflow-y-auto space-y-3 pr-1"></div>
                 <div id="thumbnail-list" class="hidden flex-1 overflow-y-auto grid grid-cols-2 gap-4 p-1"></div>
+                <div id="toc-list" class="hidden flex-1 overflow-y-auto px-1"></div>
+                <div id="notes-view" class="hidden flex-1 flex flex-col h-full relative group">
+                    <textarea id="note-textarea" class="flex-1 w-full p-3 rounded-xl border-2 border-[#EADBC8] outline-none text-[#8C6A5D] text-sm resize-none" placeholder="在此輸入筆記... 會自動儲存至本地快取。"></textarea>
+                </div>
             </div>
         </div>
 
@@ -286,7 +127,6 @@
                     <button id="print-pdf" class="cute-btn w-8 h-8 hidden md:flex items-center justify-center" title="列印">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                     </button>
-                    <!-- 全螢幕按鈕 -->
                     <button id="toggle-fullscreen" class="cute-btn w-8 h-8 flex items-center justify-center" title="全螢幕">
                         <svg id="fs-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
                     </button>
@@ -295,423 +135,48 @@
 
             <!-- PDF Continuous Scroll Container -->
             <div id="pdf-viewer-container" class="flex-1 overflow-auto bg-[#FAF6F0] rounded-2xl border-4 border-[#DAC0A3] flex flex-col items-center gap-6 p-4 scroll-smooth">
-                <!-- Canvases added here dynamically -->
+                <!-- Canvases -->
+            </div>
+
+            <!-- Scrub Bar -->
+            <div id="scrub-bar-container" class="hidden absolute bottom-0 left-4 right-4 h-3 bg-[#EADBC8] rounded-t-lg cursor-pointer transition-all hover:h-4 group z-20 overflow-visible">
+                <div id="scrub-bar-progress" class="h-full bg-[#8C6A5D] rounded-t-lg transition-all" style="width:0%"></div>
+                <div id="scrub-preview" class="absolute bottom-6 left-0 hidden transform -translate-x-1/2 p-2 bg-white rounded-xl shadow-[0_10px_25px_rgba(0,0,0,0.15)] border border-[#DAC0A3] pointer-events-none text-center">
+                    <canvas id="scrub-preview-canvas" width="100" height="140" class="block mx-auto bg-gray-100 rounded-md"></canvas>
+                    <div id="scrub-preview-text" class="text-xs font-black text-[#8C6A5D] mt-2"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="hidden fixed inset-0 bg-[#8C6A5D]/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 md:p-8 w-full max-w-sm shadow-2xl border-4 border-[#DAC0A3]">
+            <h2 class="text-xl font-black text-[#8C6A5D] mb-6 flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37..."></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> 系統設定
+            </h2>
+            <div class="space-y-4">
+                <label class="flex items-center justify-between cursor-pointer">
+                    <span class="text-[#8C6A5D] font-bold text-sm">自動記錄最後閱讀頁碼</span>
+                    <input type="checkbox" id="setting-remember" class="w-5 h-5 accent-[#8C6A5D]">
+                </label>
+                <label class="flex items-center justify-between cursor-pointer">
+                    <span class="text-[#8C6A5D] font-bold text-sm">顯示極速跳頁導覽列 (底部)</span>
+                    <input type="checkbox" id="setting-scrub" class="w-5 h-5 accent-[#8C6A5D]">
+                </label>
+                <label class="flex items-center justify-between cursor-pointer">
+                    <span class="text-[#8C6A5D] font-bold text-sm">開啟動態按需載入 (防當機)</span>
+                    <input type="checkbox" id="setting-lazy" class="w-5 h-5 accent-[#8C6A5D]">
+                </label>
+            </div>
+            <button id="close-settings" class="mt-8 w-full cute-btn py-2 text-sm">儲存並返回</button>
+        </div>
+    </div>
 
-        const PDF_FILES = [
-            { id: 1, title: '🏠 心動小鎮 (Heartopia)', filename: 'Heartopia.pdf' }
-        ];
-
-        let pdfDoc = null,
-            pageNum = 1,
-            rotation = 0,
-            currentFilename = '',
-            canvases = [],
-            currentScaleMultiplier = 1.0,
-            baseScale = 1.0;
-
-        const viewerContainer = document.getElementById('pdf-viewer-container');
-        const sidebar = document.getElementById('sidebar');
-        const bookList = document.getElementById('book-list');
-        const thumbnailList = document.getElementById('thumbnail-list');
-        const loadingScreen = document.getElementById('loading');
-        const loadingStatus = document.getElementById('loading-status');
-        const progressBar = document.getElementById('progress-bar');
-        const loadingTip = document.getElementById('loading-tip');
-        const pageInput = document.getElementById('page-input');
-        const zoomPercent = document.getElementById('zoom-percent');
-
-        const LOADING_MESSAGES = [
-            "司機正在將厚實的書本搬上車...",
-            "準備出發！油箱已加滿胡蘿蔔汁... 🥕",
-            "正在導航至心動小鎮書房...",
-            "遇到紅燈了，請小車稍微等一下...",
-            "小車正在爬坡，這本書真的很有份量！💪",
-            "正在幫您的專屬書籍找個好位置...",
-            "即將抵達目的地，正在停車中...",
-            "正在展開所有書頁，請稍候..."
-        ];
-        let messageInterval = null;
-
-        function renderBookList() {
-            bookList.innerHTML = '';
-            PDF_FILES.forEach(file => {
-                const btn = document.createElement('div');
-                btn.className = 'book-item p-4 text-[#8C6A5D] font-bold text-lg';
-                btn.innerHTML = `<div class="flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg> ${file.title}</div>`;
-                btn.onclick = () => {
-                    document.querySelectorAll('.book-item').forEach(el => el.classList.remove('active'));
-                    btn.classList.add('active');
-                    document.getElementById('current-title').innerText = file.title;
-                    loadAllPages(file.filename);
-                };
-                bookList.appendChild(btn);
-            });
-        }
-
-        async function loadAllPages(filename) {
-            showLoading(true);
-            progressBar.style.width = '0%';
-            loadingStatus.innerText = "正在聯絡搬運工人...";
-
-            try {
-                let loadingTask;
-                let fromCache = false;
-
-                // 嘗試從本地快取讀取 (Cache API)
-                if ('caches' in window) {
-                    try {
-                        const cache = await caches.open('heartopia-pdf-cache-v1');
-                        const cachedResponse = await cache.match(filename);
-                        if (cachedResponse) {
-                            fromCache = true;
-                            loadingStatus.innerText = "🚀 從本地快取讀取中，光速載入！";
-                            progressBar.style.width = '40%';
-                            const buffer = await cachedResponse.arrayBuffer();
-                            loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(buffer) });
-                        }
-                    } catch (e) {
-                        console.warn("讀取快取失敗:", e);
-                    }
-                }
-
-                // 如果沒有快取，則進行網路下載
-                if (!fromCache) {
-                    loadingTask = pdfjsLib.getDocument(filename);
-                    loadingTask.onProgress = function (progress) {
-                        if (progress.total > 0) {
-                            const percent = Math.round((progress.loaded / progress.total) * 40); // 40% reserved for download
-                            progressBar.style.width = `${percent}%`;
-                            loadingStatus.innerText = `初次下載中，自動存入快取：${Math.round((progress.loaded / progress.total)*100)}%`;
-                        }
-                    };
-                }
-
-                pdfDoc = await loadingTask.promise;
-                currentFilename = filename;
-
-                // 下載完畢後，背景執行儲存至快取
-                if (!fromCache && 'caches' in window) {
-                    pdfDoc.getData().then(data => {
-                        caches.open('heartopia-pdf-cache-v1').then(cache => {
-                            cache.put(filename, new Response(data, {
-                                headers: { 'Content-Type': 'application/pdf' }
-                            }));
-                        });
-                    }).catch(e => console.warn("儲存快取發生錯誤:", e));
-                }
-
-                const total = pdfDoc.numPages;
-                document.getElementById('page-count').textContent = total;
-                pageInput.max = total;
-                
-                viewerContainer.innerHTML = '';
-                thumbnailList.innerHTML = '';
-                canvases = [];
-                currentScaleMultiplier = 1.0;
-                pageNum = 1;
-
-                // Calculate base scale
-                const samplePage = await pdfDoc.getPage(1);
-                const containerWidth = viewerContainer.clientWidth - 40;
-                baseScale = (containerWidth) / samplePage.getViewport({ scale: 1.0, rotation: rotation }).width;
-                if(baseScale < 1.0) baseScale = 1.0;
-                if(baseScale > 2.5) baseScale = 2.5;
-
-                for (let i = 1; i <= total; i++) {
-                    loadingStatus.innerText = `正在為您精美印刷中 (${i} / ${total})...`;
-                    progressBar.style.width = `${40 + (i / total) * 60}%`;
-
-                    const page = await pdfDoc.getPage(i);
-
-                    // Thumbnail
-                    const thumbViewport = page.getViewport({ scale: 0.25, rotation: rotation });
-                    const thumbCanvas = document.createElement('canvas');
-                    thumbCanvas.className = 'thumb-canvas';
-                    thumbCanvas.width = thumbViewport.width;
-                    thumbCanvas.height = thumbViewport.height;
-                    await page.render({ canvasContext: thumbCanvas.getContext('2d'), viewport: thumbViewport }).promise;
-
-                    const thumbItem = document.createElement('div');
-                    thumbItem.className = 'thumb-item' + (i === 1 ? ' active' : '');
-                    thumbItem.setAttribute('data-page', i);
-                    thumbItem.innerHTML = `<div class="text-[10px] font-black text-[#8C6A5D] mt-1.5 px-1">${i}</div>`;
-                    thumbItem.insertBefore(thumbCanvas, thumbItem.firstChild);
-                    thumbItem.onclick = () => scrollToPage(i);
-                    thumbnailList.appendChild(thumbItem);
-
-                    // Main Page
-                    const viewport = page.getViewport({ scale: baseScale, rotation: rotation });
-                    const outputScale = window.devicePixelRatio || 1;
-                    
-                    const mainCanvas = document.createElement('canvas');
-                    mainCanvas.id = `page-${i}`;
-                    mainCanvas.className = 'max-w-full shadow-xl rounded-lg bg-white shrink-0 transition-all duration-300';
-                    mainCanvas.width = Math.floor(viewport.width * outputScale);
-                    mainCanvas.height = Math.floor(viewport.height * outputScale);
-                    mainCanvas.style.width = Math.floor(viewport.width) + "px";
-                    mainCanvas.style.height = Math.floor(viewport.height) + "px";
-                    mainCanvas.setAttribute('data-base-width', viewport.width);
-                    mainCanvas.setAttribute('data-base-height', viewport.height);
-
-                    const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
-                    await page.render({ canvasContext: mainCanvas.getContext('2d'), viewport: viewport, transform: transform }).promise;
-                    
-                    viewerContainer.appendChild(mainCanvas);
-                    canvases.push(mainCanvas);
-                }
-
-                applyCSSZoom();
-                showLoading(false);
-                
-                // 初次載入自動觸發符合分頁
-                document.getElementById('fit-page').click();
-                
-                // Auto switch to preview mode to showcase everything is loaded
-                if(bookList.classList.contains('hidden') === false) {
-                    document.getElementById('view-mode-toggle').click();
-                }
-
-            } catch (err) {
-                console.error("載入失敗:", err);
-                loadingStatus.innerText = "找不到書本 😭";
-                showLoading(false);
-            }
-        }
-
-        function scrollToPage(num) {
-            const canvas = document.getElementById(`page-${num}`);
-            if (canvas) {
-                viewerContainer.scrollTo({
-                    top: canvas.offsetTop - viewerContainer.offsetTop,
-                    behavior: 'smooth'
-                });
-            }
-        }
-
-        // Scroll listener to update active page
-        viewerContainer.addEventListener('scroll', () => {
-            if (!canvases.length) return;
-            let current = 1;
-            let minDiff = Infinity;
-            const containerCenter = viewerContainer.scrollTop + (viewerContainer.clientHeight / 2);
-            
-            canvases.forEach((canvas, index) => {
-                const canvasCenter = (canvas.offsetTop - viewerContainer.offsetTop) + (canvas.offsetHeight / 2);
-                const diff = Math.abs(canvasCenter - containerCenter);
-                if (diff < minDiff) {
-                    minDiff = diff;
-                    current = index + 1;
-                }
-            });
-
-            if (pageNum !== current) {
-                pageNum = current;
-                pageInput.value = pageNum;
-                document.querySelectorAll('.thumb-item').forEach(el => el.classList.remove('active'));
-                const activeThumb = document.querySelector(`.thumb-item[data-page="${pageNum}"]`);
-                if (activeThumb) {
-                    activeThumb.classList.add('active');
-                    activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-            }
-        });
-
-        // Zoom logic
-        document.getElementById('zoom-in').onclick = () => {
-            currentScaleMultiplier += 0.25;
-            applyCSSZoom();
-        };
-
-        document.getElementById('zoom-out').onclick = () => {
-            if (currentScaleMultiplier <= 0.25) return;
-            currentScaleMultiplier -= 0.25;
-            applyCSSZoom();
-        };
-
-        document.getElementById('fit-page').onclick = () => {
-             if(!canvases.length) return;
-             // 同時符合寬度跟高度：取兩者中最小的比例
-             const containerWidth = viewerContainer.clientWidth - 40;
-             const containerHeight = viewerContainer.clientHeight - 40;
-             const baseWidth = parseFloat(canvases[0].getAttribute('data-base-width'));
-             const baseHeight = parseFloat(canvases[0].getAttribute('data-base-height'));
-             
-             const widthMultiplier = containerWidth / baseWidth;
-             const heightMultiplier = containerHeight / baseHeight;
-             
-             currentScaleMultiplier = Math.min(widthMultiplier, heightMultiplier);
-             if (currentScaleMultiplier < 0.2) currentScaleMultiplier = 0.2;
-             
-             applyCSSZoom();
-        };
-
-        function applyCSSZoom() {
-            zoomPercent.innerText = Math.round(currentScaleMultiplier * 100) + '%';
-            canvases.forEach(canvas => {
-                const originalW = parseFloat(canvas.getAttribute('data-base-width'));
-                const originalH = parseFloat(canvas.getAttribute('data-base-height'));
-                canvas.style.width = Math.floor(originalW * currentScaleMultiplier) + "px";
-                canvas.style.height = Math.floor(originalH * currentScaleMultiplier) + "px";
-            });
-            // Auto re-center view around the current page when scaling
-            setTimeout(() => scrollToPage(pageNum), 10);
-        }
-
-        document.getElementById('prev-page').onclick = () => {
-            if (pageNum <= 1 || !pdfDoc) return;
-            scrollToPage(pageNum - 1);
-        };
-
-        document.getElementById('next-page').onclick = () => {
-            if (!pdfDoc || pageNum >= pdfDoc.numPages) return;
-            scrollToPage(pageNum + 1);
-        };
-
-        document.getElementById('rotate-pdf').onclick = async () => {
-            rotation = (rotation + 90) % 360;
-            if (currentFilename) {
-                await loadAllPages(currentFilename);
-            }
-        };
-
-        document.getElementById('toggle-sidebar').onclick = () => {
-            sidebar.classList.toggle('collapsed');
-            // Allow CSS transition to finish before recalculating zoom
-            setTimeout(() => {
-                document.getElementById('fit-page').click();
-            }, 400); 
-        };
-
-        document.getElementById('view-mode-toggle').onclick = () => {
-            const isBookMode = !bookList.classList.contains('hidden');
-            if (isBookMode) {
-                bookList.classList.add('hidden');
-                thumbnailList.classList.remove('hidden');
-                document.getElementById('sidebar-title').innerText = "頁面預覽";
-            } else {
-                bookList.classList.remove('hidden');
-                thumbnailList.classList.add('hidden');
-                document.getElementById('sidebar-title').innerText = "我的書櫃";
-            }
-        };
-
-        pageInput.onchange = (e) => {
-            const newPage = parseInt(e.target.value);
-            if (newPage >= 1 && newPage <= pdfDoc.numPages) {
-                scrollToPage(newPage);
-            } else {
-                e.target.value = pageNum;
-            }
-        };
-
-        document.getElementById('download-pdf').onclick = () => {
-            if (!currentFilename) return;
-            const link = document.createElement('a');
-            link.href = currentFilename;
-            link.download = currentFilename;
-            link.click();
-        };
-
-        document.getElementById('print-pdf').onclick = () => {
-            if (!currentFilename) return;
-            const printWindow = window.open(currentFilename, '_blank');
-            if(printWindow) printWindow.print();
-        };
-
-        window.addEventListener('keydown', (e) => {
-            if (e.target.tagName === 'INPUT') return;
-            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-                document.getElementById('next-page').click();
-            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-                document.getElementById('prev-page').click();
-            }
-        });
-
-        function showLoading(show) {
-            if (show) {
-                loadingScreen.style.display = 'flex';
-                loadingScreen.style.opacity = '1';
-                startMessageCycle();
-            } else {
-                loadingScreen.style.opacity = '0';
-                setTimeout(() => {
-                    loadingScreen.style.display = 'none';
-                    stopMessageCycle();
-                }, 500);
-            }
-        }
-
-        function startMessageCycle() {
-            let i = 0;
-            loadingTip.innerText = LOADING_MESSAGES[0];
-            messageInterval = setInterval(() => {
-                i = (i + 1) % LOADING_MESSAGES.length;
-                loadingTip.classList.remove('fadeIn');
-                void loadingTip.offsetWidth; 
-                loadingTip.innerText = LOADING_MESSAGES[i];
-            }, 3000);
-        }
-
-        function stopMessageCycle() {
-            if (messageInterval) clearInterval(messageInterval);
-        }
-
-        // 全螢幕邏輯
-        const cuteCard = document.querySelector('.cute-card');
-        const fsIcon = document.getElementById('fs-icon');
-
-        document.getElementById('toggle-fullscreen').onclick = () => {
-            if (!document.fullscreenElement) {
-                // 進入全螢幕
-                cuteCard.requestFullscreen().catch(err => {
-                    console.log(`無法進入全螢幕模式: ${err.message}`);
-                });
-            } else {
-                // 離開全螢幕
-                document.exitFullscreen();
-            }
-        };
-
-        document.addEventListener('fullscreenchange', () => {
-            if (document.fullscreenElement) {
-                // 全螢幕時移除邊框與圓角，撐滿畫面
-                cuteCard.classList.remove('max-w-6xl', 'h-[90vh]', 'md:h-[85vh]');
-                cuteCard.classList.add('w-screen', 'h-screen');
-                cuteCard.style.borderRadius = '0px';
-                cuteCard.style.border = 'none';
-                fsIcon.setAttribute('d', 'M6 18L18 6M6 6l12 12'); // 換成 X 圖示
-            } else {
-                // 恢復原本卡片樣式
-                cuteCard.classList.add('max-w-6xl', 'h-[90vh]', 'md:h-[85vh]');
-                cuteCard.classList.remove('w-screen', 'h-screen');
-                cuteCard.style.borderRadius = '30px';
-                cuteCard.style.border = '4px solid #DAC0A3';
-                fsIcon.setAttribute('d', 'M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4');
-            }
-            
-            // 全螢幕切換後，自動重新計算寬高與比例
-            setTimeout(() => {
-                document.getElementById('fit-page').click();
-            }, 300);
-        });
-
-        renderBookList();
-        
-        window.addEventListener('DOMContentLoaded', () => {
-            const defaultBook = PDF_FILES[0];
-            document.getElementById('current-title').innerText = defaultBook.title;
-            setTimeout(() => {
-                const firstItem = document.querySelector('.book-item');
-                if (firstItem) firstItem.classList.add('active');
-            }, 100);
-            loadAllPages(defaultBook.filename);
-        });
-    </script>
+    <!-- Refactored Scripts -->
+    <script src="./js/store.js"></script>
+    <script src="./js/pdfLoader.js"></script>
+    <script src="./js/ui.js"></script>
+    <script src="./js/app.js"></script>
 </body>
 </html>
